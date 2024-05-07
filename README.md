@@ -1,8 +1,12 @@
-# React + Vite
+# Bookmarkd
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Description
+Bookmarkd is a social media / book review website in the style of Letterboxd but for books instead of movies.  Users will be able to create an account, add books they plan to read to their personal book list, post reviews of books they just finished, search other users and their review history, comment on or like other users’ reviews, and form book clubs with other users currently reading the same book.  The app sources data on the books from the Google Books API and it uses a MongoDB database to store user information. 
 
-Currently, two official plugins are available:
+## Installation
+N/A
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Usage
+
+## Credits
+Co-creators of Bookmarkd: Robin Langton, Domas Dargis, Alexa Chavez, Nate Johnson
