@@ -1,4 +1,5 @@
 const { Schema, model } = require('mongoose');
+const bookStatusSchema = require('./BookStatus');
 
 const userSchema = new Schema({
     username: {
@@ -17,21 +18,7 @@ const userSchema = new Schema({
         minlength: 8,
     },
     books: [
-        booksStatus
-        // {
-        //     book: {
-        //         type: Schema.Types.ObjectId,
-        //         ref: 'Book',
-        //     },
-        //     status: {
-        //         type: String,
-        //         required: true,
-        //     },
-        //     favorite: {
-        //         type: String,
-        //         required: true, 
-        //     },
-        // },
+        bookStatusSchema
     ],
     reviews: [
         {
