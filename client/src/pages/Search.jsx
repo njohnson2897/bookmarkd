@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const handleFormSubmit = async (e) => {
   e.preventDefault();
 
@@ -10,7 +12,7 @@ const handleFormSubmit = async (e) => {
 
   try {
     const response = await fetch(
-      `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(bookTitle)}&key=AIzaSyAu-WUN9j4exsem_fv3tEdmBP32dKmlP7s`
+      `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(bookTitle)}&key=${process.env.API_KEY}`
     );
 
     if (!response.ok) {
