@@ -1,13 +1,16 @@
-import './App.css';
-import Search from './pages/Search';
+import Header from "./components/Header.jsx";
+import Footer from "./components/Footer.jsx";
+import { Outlet } from "react-router-dom";
+
 
 function App() {
-
   return (
-    <>
-     <Search />
-    </>
-  )
+  <>
+  <Header />
+  <Outlet />
+  <Footer />
+  </>
+  );
 }
 
-export default App
+export default App;
