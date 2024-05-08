@@ -9,22 +9,10 @@ const User = () => {
     { id: 3, name: 'Book Snob 3', club: 'Reading Club 3' }
   ];
 
+  const users = [...bookSnobs];
+
   return (
     <div className='user-container'>
-      <div className='user-header'>
-        {isAuthenticated ? (
-          <>
-            <button>Books</button>
-            <button>Users</button>
-            <button>Clubs</button>
-          </>
-        ) : (
-          <>
-            <button>Sign In</button>
-            <button>Create Account</button>
-          </>
-        )}
-      </div>
       <h2 className='popular-snobs'>Popular Snobs</h2>
       <div className="user-profiles">
         {users.map((user) => (
