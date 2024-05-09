@@ -21,6 +21,11 @@ type BookStatus {
     favorite: Boolean
 }
 
+type Auth {
+    token: ID!
+    user: User
+}
+
 type Review {
     _id: ID!
     book: Book!
@@ -52,6 +57,7 @@ type Mutation {
     addBookStatus(book: ID!, user: ID!, status: String!, favorite: Boolean!): User
     addReview(book_id: ID!, user_id: ID!, stars: Int!, title: String, description: String): Review
     addClub(name: String!, owner: ID!): Club
+    login(email: String!, password: String!): Auth
 }
 `;
 
