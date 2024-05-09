@@ -8,6 +8,7 @@ import Review from "./pages/Review.jsx";
 import Search from "./pages/Search.jsx";
 import User from "./pages/User.jsx";
 import Error from "./pages/Error.jsx";
+import Profile from "./pages/Profile.jsx";
 import "./index.css";
 
 const router = createBrowserRouter([
@@ -27,6 +28,10 @@ const router = createBrowserRouter([
       {
         path: "user/:userId",
         element: <User />,
+      },
+      {
+        path: "profile/:profileId",
+        element: <Profile />,
       },
       {
         path: "search",
