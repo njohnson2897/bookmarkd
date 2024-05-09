@@ -7,6 +7,7 @@ import Home from "./pages/Home.jsx";
 import Review from "./pages/Review.jsx";
 import Search from "./pages/Search.jsx";
 import User from "./pages/User.jsx";
+import Club from "./pages/Club.jsx"
 import Error from "./pages/Error.jsx";
 import "./index.css";
 
@@ -21,11 +22,11 @@ const router = createBrowserRouter([
         element: <Home />,
       },
       {
-        path: "book/:bookId",
+        path: "books",
         element: <Book />,
       },
       {
-        path: "user/:userId",
+        path: "users",
         element: <User />,
       },
       {
@@ -33,8 +34,12 @@ const router = createBrowserRouter([
         element: <Search />,
       },
       {
-        path: "review/:reviewId",
+        path: "reviews",
         element: <Review />,
+      },
+      {
+        path: "clubs",
+        element: <Club />,
       }
     ],
   },

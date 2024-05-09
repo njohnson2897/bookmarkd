@@ -1,8 +1,11 @@
+import { Link } from 'react-router-dom';
+
 function Navbar() {
     const alertTest = function(e){
         e.preventDefault();
         document.querySelector("#navbarSupportedContent").classList.toggle("lg_nav-toggle");
         document.querySelector(".custom_menu-btn").classList.toggle("menu_btn-style")
+
     }
     return (
     <div className="hero_area">
@@ -22,33 +25,29 @@ function Navbar() {
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
             <ul className="navbar-nav  ">
               <li className="nav-item active">
-                <a className="nav-link" href="index.html">Home<span className="sr-only">(current)</span></a>
+                <Link className='nav-link' to='/'>Home</Link>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="#bottom">Contact Us</a>
+                <Link className='nav-link' to='#bottom'>Contact Us</Link>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="users.html">Users</a>
+                <Link className='nav-link' to='/users'>Users</Link>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="bookclubs.html">Book Clubs</a>
+                <Link className='nav-link' to='/clubs'>Book Clubs</Link>
+              </li>
+              <li className="nav-item">
+                <Link className='nav-link' to='/reviews'>Reviews</Link>
               </li>
             </ul>
             <div className="user_option">
-              <a href="books.html">
-                <span>
-                  Browse Books
-                </span>
-              </a>
-              <form className="form-inline my-2 my-lg-0 ml-0 ml-lg-4 mb-3 mb-lg-0">
-                <button className="btn  my-2 my-sm-0 nav_search-btn" type="submit"></button>
-              </form>
+            <Link className='pr-2' to='/search'>Browse Books</Link>
             </div>
           </div>
           <div>
             <div className="custom_menu-btn ">
               <button onClick = {alertTest}>
-                <span className=" s-1">
+                <span className="s-1">
 
                 </span>
                 <span className="s-2">
