@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 function Navbar() {
     const alertTest = function(e){
         e.preventDefault();
@@ -21,28 +23,24 @@ function Navbar() {
 
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
             <ul className="navbar-nav  ">
-              <li className="nav-item active">
-                <a className="nav-link" href="/">Home<span className="sr-only">(current)</span></a>
+            <li className="nav-item active">
+                <Link className='nav-link' to='/'>Home</Link>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="#bottom">Contact Us</a>
+                <Link className='nav-link' to='#bottom'>Contact Us</Link>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="User.jsx">Users</a>
+                <Link className='nav-link' to='/users'>Users</Link>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="bookclubs.jsx">Book Clubs</a>
+                <Link className='nav-link' to='/clubs'>Book Clubs</Link>
+              </li>
+              <li className="nav-item">
+                <Link className='nav-link' to='/reviews'>Reviews</Link>
               </li>
             </ul>
             <div className="user_option">
-              <a href="books.html">
-                <span>
-                  Browse Books
-                </span>
-              </a>
-              <form className="form-inline my-2 my-lg-0 ml-0 ml-lg-4 mb-3 mb-lg-0">
-                <button className="btn  my-2 my-sm-0 nav_search-btn" type="submit"></button>
-              </form>
+            <Link className='pr-2' to='/search'>Browse Books</Link>
             </div>
           </div>
           <div>

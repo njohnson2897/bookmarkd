@@ -9,5 +9,3 @@ btn.click(function (e) {
     nav.toggleClass("lg_nav-toggle");
     document.querySelector(".custom_menu-btn").classList.toggle("menu_btn-style")
 });
-
-getCurrentYear();
