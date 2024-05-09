@@ -22,16 +22,16 @@ function Navbar() {
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
             <ul className="navbar-nav  ">
               <li className="nav-item active">
-                <a className="nav-link" href="index.html">Home<span className="sr-only">(current)</span></a>
+                <a className="nav-link" href="/">Home<span className="sr-only">(current)</span></a>
               </li>
               <li className="nav-item">
                 <a className="nav-link" href="#bottom">Contact Us</a>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="users.html">Users</a>
+                <a className="nav-link" href="User.jsx">Users</a>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="bookclubs.html">Book Clubs</a>
+                <a className="nav-link" href="bookclubs.jsx">Book Clubs</a>
               </li>
             </ul>
             <div className="user_option">

@@ -37,16 +37,16 @@ function Footer() {
                 </h5>
                 <ul>
                   <li className=" active">
-                    <a className="" href="index.html">Home <span className="sr-only">(current)</span></a>
+                    <a className="" href="/">Home <span className="sr-only">(current)</span></a>
                   </li>
                   <li className="">
-                    <a className="" href="users.html">Sign in</a>
+                    <a className="" href="/">Sign in</a>
                   </li>
                   <li className="">
-                    <a className="" href="books.html">Browse Books</a>
+                    <a className="" href="book.jsx">Browse Books</a>
                   </li>
                   <li className="">
-                    <a className="" href="bookclubs.html">Book Clubs</a>
+                    <a className="" href="bookclubs.jsx">Book Clubs</a>
                   </li>
                 </ul>
               </div>
@@ -63,7 +63,7 @@ function Footer() {
             <div className="col-md-3 col-lg-2 offset-lg-1">
               <h5>
                 <div className="social_box">
-                  <a href="https://github.com/njohnson2897/bookmarkd">
+                  <a href="https://github.com/njohnson2897/bookmarkd" target="blank">
                     <img src="images/gh.png" alt="githublogo"/>Github
                   </a>
                   </div>
