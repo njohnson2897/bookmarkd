@@ -1,4 +1,43 @@
+// import Auth from '../utils/auth';
+// import { useState } from 'react';
+// import { useMutation } from '@apollo/client';
+// import { LOGIN_USER } from '../utils/mutations'
+
 export default function Home() {
+  
+  // const [formState, setFormState] = useState({ email: '', password: '' });
+  // const [login, { error, data }] = useMutation(LOGIN_USER);
+
+  // // update state based on form input changes
+  // const handleChange = (event) => {
+  //   const { name, value } = event.target;
+
+  //   setFormState({
+  //     ...formState,
+  //     [name]: value,
+  //   });
+  // };
+
+  //  // submit form
+  //  const handleFormSubmit = async (event) => {
+  //   event.preventDefault();
+  //   console.log(formState);
+  //   try {
+  //     const { data } = await login({
+  //       variables: { ...formState },
+  //     });
+
+  //     Auth.login(data.login.token);
+  //   } catch (e) {
+  //     console.error(e);
+  //   }
+
+  //   // clear form values
+  //   setFormState({
+  //     email: '',
+  //     password: '',
+  //   });
+  // };
   
     return (
       <section className="slider_section ">
@@ -6,7 +45,7 @@ export default function Home() {
         <a className="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
           <span className="sr-only">Previous</span>
         </a>
-        <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+        <a className="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
           <span className="sr-only">Next</span>
         </a>
       </div>
@@ -64,22 +103,22 @@ export default function Home() {
                 <div className="offset-md-1 col-md-4 img-container">
                   <div className="img-box">
                     <h1 className="mb-5">Sign in</h1>
-            <div data-mdb-input-init class="form-outline mb-4">
-              <input type="email" id="typeEmailX-2" className="form-control form-control-lg" />
-              <label class="form-label" for="typeEmailX-2">Email</label>
+            <div data-mdb-input-init className="form-outline mb-4">
+              <input  type="email" id="typeEmailX-2" className="form-control form-control-lg" />
+              <label className="form-label" htmlFor="typeEmailX-2">Email</label>
             </div>
 
             <div data-mdb-input-init className="form-outline mb-4">
               <input type="password" id="typePasswordX-2" className="form-control form-control-lg" />
-              <label className="form-label" for="typePasswordX-2">Password</label>
+              <label className="form-label" htmlFor="typePasswordX-2">Password</label>
             </div>
 
             <div className="form-check d-flex justify-content-start mb-4">
-              <input className="form-check-input" type="checkbox" value="" id="form1Example3" />
-              <label className="form-check-label" for="form1Example3"> Remember password </label>
+              <input  className="form-check-input" type="checkbox" value="" id="form1Example3" />
+              <label className="form-check-label" htmlFor="form1Example3"> Remember password </label>
             </div>
 
-            <button data-mdb-button-init data-mdb-ripple-init class="btn btn-danger btn-lg btn-block" type="submit">Sign in</button>
+            <button data-mdb-button-init data-mdb-ripple-init className="btn btn-danger btn-lg btn-block" type="submit">Sign in</button>
                   </div>
                 </div>
               </div>
@@ -104,23 +143,19 @@ export default function Home() {
                     <h1 className="mb-5">Sign up</h1>
 
                     <div data-mdb-input-init className="form-outline mb-4">
-                      <input type="email" id="typeEmailX-2" className="form-control form-control-lg" />
-                      <label className="form-label" for="typeEmailX-2">First Name</label>
+                      <input  type="email" id="typeEmailX-2" className="form-control form-control-lg" />
+                      <label className="form-label" htmlFor="typeEmailX-2">Username</label>
                     </div>     
-                    
-                    <div data-mdb-input-init className="form-outline mb-4">
-                      <input type="email" id="typeEmailX-2" className="form-control form-control-lg" />
-                      <label className="form-label" for="typeEmailX-2">Last Name</label>
-                    </div>
+                  
 
             <div data-mdb-input-init className="form-outline mb-4">
-              <input type="email" id="typeEmailX-2" className="form-control form-control-lg" />
-              <label className="form-label" for="typeEmailX-2">Email</label>
+              <input  type="email" id="typeEmailX-2" className="form-control form-control-lg" />
+              <label className="form-label" htmlFor="typeEmailX-2">Email</label>
             </div>
 
             <div data-mdb-input-init className="form-outline mb-4">
-              <input type="password" id="typePasswordX-2" className="form-control form-control-lg" />
-              <label className="form-label" for="typePasswordX-2">Password</label>
+              <input  type="password" id="typePasswordX-2" className="form-control form-control-lg" />
+              <label className="form-label" htmlFor="typePasswordX-2">Password</label>
             </div>
 
             <button data-mdb-button-init data-mdb-ripple-init className="btn btn-danger btn-lg btn-block" type="submit">Sign up</button>

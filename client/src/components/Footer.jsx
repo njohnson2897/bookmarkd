@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 function Footer() {
     return (
         <section className="info_section ">
@@ -36,17 +38,14 @@ function Footer() {
                   Links
                 </h5>
                 <ul>
-                  <li className=" active">
-                    <a className="" href="/">Home <span className="sr-only">(current)</span></a>
+                  <li className="active">
+                  <Link className='nav-link' to='/'>Home</Link>
                   </li>
                   <li className="">
-                    <a className="" href="/">Sign in</a>
+                  <Link className='pr-2' to='/search'>Browse Books</Link>
                   </li>
                   <li className="">
-                    <a className="" href="book.jsx">Browse Books</a>
-                  </li>
-                  <li className="">
-                    <a className="" href="bookclubs.jsx">Book Clubs</a>
+                  <Link className='nav-link' to='/clubs'>Book Clubs</Link>
                   </li>
                 </ul>
               </div>
@@ -76,12 +75,20 @@ function Footer() {
                 <h5>
                   Contact Us
                 </h5>
+
                 {/* Changed from class= to className */}
                 <div className="form">
                   <form>
                       <div className="form-group">
                         {/* Changed from emailarea to textarea*/}
                           <textarea type="email" className="form-control form-control-sm" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Email" required></textarea>                      </div>
+
+                <div className="form">
+                  <form>
+                      <div className="form-group">
+                          <emailarea type="email" className="form-control form-control-sm" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Email" required></emailarea>
+                      </div>
+
                       <div className="form-group">
                           <textarea name="contact-message" id="contact-message" cols="30" rows="2" className="form-control form-control-sm" placeholder="Message"></textarea>
                       <button type="submit" className="btn btn-primary btn-block btn-sm mt-3">Send Message</button>
