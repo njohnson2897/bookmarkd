@@ -5,6 +5,10 @@ const reviewSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Book'
     },
+    user_id: {
+        type: Schema.Types.ObjectId,
+        ref: 'User'
+    },
     stars: {
         type: Number,
         require: true,

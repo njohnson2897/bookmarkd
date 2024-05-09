@@ -10,7 +10,7 @@ const bookStatusSchema = new Schema({
         required: true,
     },
     favorite: {
-        type: String,
+        type: Boolean,
         required: true, 
     },
 })
