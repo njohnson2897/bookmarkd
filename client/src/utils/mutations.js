@@ -22,3 +22,24 @@ mutation Mutation($username: String!, $email: String!, $password: String!) {
       }
     }
   }`
+
+// export const ADD_BOOK = gql`
+// `
+
+// export const ADD_BOOK_STATUS = gql`
+// `
+
+// export const ADD_REVIEW = gql`
+// `
+
+// export const ADD_CLUB = gql`
+// `
+
+// export const DELETE_REVIEW = gql`
+// `
+
+// export const DELETE_CLUB = gql`
+// `
+
+// export const REMOVE_USER_BOOK = gql`
+// `
