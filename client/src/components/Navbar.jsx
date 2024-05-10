@@ -4,8 +4,15 @@ function Navbar() {
     const alertTest = function(e){
         e.preventDefault();
         document.querySelector("#navbarSupportedContent").classList.toggle("lg_nav-toggle");
-        document.querySelector(".custom_menu-btn").classList.toggle("menu_btn-style")
+        document.querySelector(".custom_menu-btn").classList.toggle("menu_btn-style");
+
     }
+   
+    const scrollToBottom = () => {
+      const bottom = document.getElementById('bottom');
+      bottom.scrollIntoView({ behavior: 'smooth' });
+    }
+
     return (
     <div className="hero_area">
     <header className="header_section">
@@ -27,7 +34,7 @@ function Navbar() {
                 <Link className='nav-link' to='/'>Home</Link>
               </li>
               <li className="nav-item">
-                <Link className='nav-link' to='#bottom'>Contact Us</Link>
+                <Link className='nav-link' onClick={scrollToBottom}>Contact Us</Link>
               </li>
               <li className="nav-item">
                 <Link className='nav-link' to='/users'>Users</Link>
