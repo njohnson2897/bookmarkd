@@ -30,7 +30,7 @@ function Navbar() {
                 <Link className='nav-link' to='#bottom'>Contact Us</Link>
               </li>
               <li className="nav-item">
-                <Link className='nav-link' to='/users'>Users</Link>
+                <Link className='nav-link' to='/users'>User Profile</Link>
               </li>
               <li className="nav-item">
                 <Link className='nav-link' to='/clubs'>Book Clubs</Link>
