@@ -75,11 +75,20 @@ function Footer() {
                 <h5>
                   Contact Us
                 </h5>
+
+                {/* Changed from class= to className */}
+                <div className="form">
+                  <form>
+                      <div className="form-group">
+                        {/* Changed from emailarea to textarea*/}
+                          <textarea type="email" className="form-control form-control-sm" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Email" required></textarea>                      </div>
+
                 <div className="form">
                   <form>
                       <div className="form-group">
                           <emailarea type="email" className="form-control form-control-sm" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Email" required></emailarea>
                       </div>
+
                       <div className="form-group">
                           <textarea name="contact-message" id="contact-message" cols="30" rows="2" className="form-control form-control-sm" placeholder="Message"></textarea>
                       <button type="submit" className="btn btn-primary btn-block btn-sm mt-3">Send Message</button>
