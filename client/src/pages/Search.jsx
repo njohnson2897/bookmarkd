@@ -53,23 +53,23 @@ return (
           Submit
         </button>
       </form>
-      {searchedBook.length > 0 && (
-        <div key={searchedBook[0].bookId}>
-          <p className='text-center'>{searchedBook[0].title}</p>
-          <img 
-            alt={searchedBook[0].title}
-            className="img-fluid text-center"
-            src={searchedBook[0].image}
-          />
-          <p>Author(s): {searchedBook[0].authors}</p>
-          {searchedBook[0].rating ? (
-            <p>Rating: {searchedBook[0].rating}</p>
-          ) : null }
-          {searchedBook[0].rating ? (
-            <p>Description: {searchedBook[0].description}</p>
-          ) : null }
-        </div>
-      )}
+      {searchedBook.map((book) => (
+  <div key={book.bookId}>
+    <p className='text-center'>{book.title}</p>
+    <img 
+      alt={book.title}
+      className="img-fluid text-center"
+      src={book.image}
+    />
+    <p>Author(s): {book.authors}</p>
+    {book.rating && (
+      <p>Rating: {book.rating}</p>
+    )}
+    {book.description && (
+      <p>Description: {book.description}</p>
+    )}
+  </div>
+))}
     </div>
   );
 }
