@@ -232,13 +232,13 @@ a:focus {
 }
 
 .slider_section .detail-box h1 {
-  color: #ffffff;
+  color: black;
   font-weight: bold;
   text-transform: uppercase;
 }
 
 .slider_section .detail-box p {
-  color: #ffffff;
+  color: black;
   margin-top: 15px;
 }
 
@@ -297,17 +297,17 @@ a:focus {
 }
 
 .slider_section #carouselExampleIndicators {
-  position: unset;
+  position: relative;
   width: 100%;
 }
 
 .slider_section .carousel_btn-container {
   width: 120px;
-  position: absolute;
+  /* position: absolute; */
   bottom: 0;
   display: -webkit-box;
   display: -ms-flexbox;
-  display: flex;
+  /* display: flex; */
   -webkit-box-pack: justify;
   -ms-flex-pack: justify;
   justify-content: space-between;
