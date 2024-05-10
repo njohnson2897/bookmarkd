@@ -25,7 +25,7 @@ type Review {
     _id: ID!
     book: Book!
     user: User!
-    stars: Int!
+    stars: Float!
     title: String
     description: String
 }
@@ -50,11 +50,13 @@ type Mutation {
     addUser(username: String!, email: String!, password: String!): User
     addBook(google_id: String!): Book
     addBookStatus(book: ID!, user: ID!, status: String!, favorite: Boolean!): User
-    addReview(book: ID!, user: ID!, stars: Int!, title: String, description: String): Review
+    addReview(book: ID!, user: ID!, stars: Float!, title: String, description: String): Review
     addClub(name: String!, owner: ID!): Club
     deleteReview(reviewId: ID!): Review
     deleteClub(clubId: ID!): Club
     removeUserBook(bookId: ID!, userId: ID!): User
+    editUserBookStatus(bookId: ID!, userId: ID!, status: String): User
+    editUserBookFavorite(bookId: ID!, userId: ID!, favorite: Boolean): User
 }
 `;
 

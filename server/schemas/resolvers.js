@@ -82,6 +82,20 @@ const resolvers = {
                 { multi: true }
             );
         },
+        editUserBookStatus: async (parent, { bookId, userId, status }) => {
+            return await User.findOneAndUpdate(
+                { _id: userId, 'books.book': bookId },
+                { $set: { 'books.$.status': status } },
+                { new: true}
+            )
+        },
+        editUserBookFavorite: async (parent, { bookId, userId, favorite }) => {
+            return await User.findOneAndUpdate(
+                { _id: userId, 'books.book': bookId },
+                { $set: { 'books.$.favorite': favorite } },
+                { new: true}
+            )
+        }
     }
 };
 
