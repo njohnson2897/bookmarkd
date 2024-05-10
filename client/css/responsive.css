@@ -53,7 +53,7 @@
   .hero_area {
     background: none;
     background-color: #1a2e35;
-    /* background: linear-gradient(to bottom, #1a2e35 40%, #1cbbb4 40%); */
+    background: linear-gradient(to bottom, #1a2e35 40%, #1cbbb4 40%);
   }
 
   .slider_section {

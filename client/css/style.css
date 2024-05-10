@@ -44,7 +44,7 @@ body {
 
 /*header section*/
 .hero_area {
-  height: calc(100vh - 30px);
+  /* height: calc(100vh - 30px); */
   background: -webkit-gradient(linear, left top, right top, color-stop(55%, #1a2e35), color-stop(55%, #1cbbb4));
   background: linear-gradient(to right, #1a2e35 55%, #1cbbb4 55%);
   display: -webkit-box;
@@ -55,7 +55,7 @@ body {
 
   -ms-flex-direction: column;
   flex-direction: column;
-  position: relative;
+  position: ;
 
 }
 
@@ -212,9 +212,9 @@ a:focus {
   -webkit-box-flex: 1;
   -ms-flex: 1;
   flex: 1;
-  display: -webkit-box;
+  /* display: -webkit-box; */
   display: -ms-flexbox;
-  display: flex;
+  /* display: flex; */
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
@@ -366,6 +366,7 @@ a:focus {
 
 .slider_section ol.carousel-indicators li.active {
   display: block;
+  position: unset;
 }
 
 .experience_section .row {
