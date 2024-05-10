@@ -1,24 +1,24 @@
 export default function Club() {
   
     return (
-      <section class="freelance_section ">
+      <section className="freelance_section ">
   <div id="accordion">
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-md-5 offset-md-1">
-          <div class="detail-box">
-            <div class="heading_container">
-              <div class="t-link-box" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                <div class="detail-box">
+    <div className="container-fluid">
+      <div className="row">
+        <div className="col-md-5 offset-md-1">
+          <div className="detail-box">
+            <div className="heading_container">
+              <div className="t-link-box" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                <div className="detail-box">
                   <h2>
                     Join A Book Club!
                   </h2>
                 </div>
               </div>
             </div>
-            <div class="tab_container">
-              <div class="t-link-box collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                <div class="detail-box">
+            <div className="tab_container">
+              <div className="t-link-box collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                <div className="detail-box">
                   <h5>
                     Join
                   </h5>
@@ -27,8 +27,8 @@ export default function Club() {
                   </h3>
                 </div>
               </div>
-              <div class="t-link-box collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                <div class="detail-box">
+              <div className="t-link-box collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                <div className="detail-box">
                   <h5>
                     Join
                   </h5>
@@ -37,8 +37,8 @@ export default function Club() {
                   </h3>
                 </div>
               </div>
-              <div class="t-link-box collapsed" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-                <div class="detail-box">
+              <div className="t-link-box collapsed" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                <div className="detail-box">
                   <h5>
                     Join
                   </h5>
@@ -50,86 +50,86 @@ export default function Club() {
             </div>
           </div>
         </div>
-        <div class="col-md-6">
-          <div class="collapse show" id="collapseOne" aria-labelledby="headingOne" data-parent="#accordion">
-            <div class="img-box">
+        <div className="col-md-6">
+          <div className="collapse show" id="collapseOne" aria-labelledby="headingOne" data-parent="#accordion">
+            <div className="img-box">
               <img src="images/books.jpeg" alt=""/>
             </div>
           </div>
-          <div class="collapse" id="collapseTwo" aria-labelledby="headingTwo" data-parent="#accordion">
+          <div className="collapse" id="collapseTwo" aria-labelledby="headingTwo" data-parent="#accordion">
             <h2>Sign Up Here</h2>
 
-                    <div data-mdb-input-init class="form-outline">
-                      <input type="email" id="typeEmailX-2" class="form-control form-control-sm" />
-                      <label class="form-label" for="typeEmailX-2">First Name</label>
+                    <div data-mdb-input-init className="form-outline">
+                      <input type="email" id="typeEmailX-2" className="form-control form-control-sm" />
+                      <label className="form-label" htmlFor="typeEmailX-2">First Name</label>
                     </div>     
                     
-                    <div data-mdb-input-init class="form-outline">
-                      <input type="email" id="typeEmailX-2" class="form-control form-control-sm" />
-                      <label class="form-label" for="typeEmailX-2">Last Name</label>
+                    <div data-mdb-input-init className="form-outline">
+                      <input type="email" id="typeEmailX-2" className="form-control form-control-sm" />
+                      <label className="form-label" htmlFor="typeEmailX-2">Last Name</label>
                     </div>
 
-            <div data-mdb-input-init class="form-outline">
-              <input type="email" id="typeEmailX-2" class="form-control form-control-sm" />
-              <label class="form-label" for="typeEmailX-2">Email</label>
+            <div data-mdb-input-init className="form-outline">
+              <input type="email" id="typeEmailX-2" className="form-control form-control-sm" />
+              <label className="form-label" htmlFor="typeEmailX-2">Email</label>
             </div>
 
-            <div data-mdb-input-init class="form-outline">
-              <input type="password" id="typePasswordX-2" class="form-control form-control-sm" />
-              <label class="form-label" for="typePasswordX-2">Club Name</label>
+            <div data-mdb-input-init className="form-outline">
+              <input type="password" id="typePasswordX-2" className="form-control form-control-sm" />
+              <label className="form-label" htmlFor="typePasswordX-2">Club Name</label>
             </div>
 
-            <button data-mdb-button-init data-mdb-ripple-init class="btn btn-danger btn-sm btn-block" type="submit">Join</button>
+            <button data-mdb-button-init data-mdb-ripple-init className="btn btn-danger btn-sm btn-block" type="submit">Join</button>
           </div>
-          <div class="collapse" id="collapseThree" aria-labelledby="headingThree" data-parent="#accordion">
+          <div className="collapse" id="collapseThree" aria-labelledby="headingThree" data-parent="#accordion">
             <h2>Sign Up Here</h2>
 
-            <div data-mdb-input-init class="form-outline">
-              <input type="email" id="typeEmailX-2" class="form-control form-control-sm" />
-              <label class="form-label" for="typeEmailX-2">First Name</label>
+            <div data-mdb-input-init className="form-outline">
+              <input type="email" id="typeEmailX-2" className="form-control form-control-sm" />
+              <label className="form-label" htmlFor="typeEmailX-2">First Name</label>
             </div>     
             
-            <div data-mdb-input-init class="form-outline">
-              <input type="email" id="typeEmailX-2" class="form-control form-control-sm" />
-              <label class="form-label" for="typeEmailX-2">Last Name</label>
+            <div data-mdb-input-init className="form-outline">
+              <input type="email" id="typeEmailX-2" className="form-control form-control-sm" />
+              <label className="form-label" htmlFor="typeEmailX-2">Last Name</label>
             </div>
 
-    <div data-mdb-input-init class="form-outline">
-      <input type="email" id="typeEmailX-2" class="form-control form-control-sm" />
-      <label class="form-label" for="typeEmailX-2">Email</label>
+    <div data-mdb-input-init className="form-outline">
+      <input type="email" id="typeEmailX-2" className="form-control form-control-sm" />
+      <label className="form-label" htmlFor="typeEmailX-2">Email</label>
     </div>
 
-    <div data-mdb-input-init class="form-outline">
-      <input type="password" id="typePasswordX-2" class="form-control form-control-sm" />
-      <label class="form-label" for="typePasswordX-2">Club Name</label>
+    <div data-mdb-input-init className="form-outline">
+      <input type="password" id="typePasswordX-2" className="form-control form-control-sm" />
+      <label className="form-label" htmlFor="typePasswordX-2">Club Name</label>
     </div>
 
-    <button data-mdb-button-init data-mdb-ripple-init class="btn btn-danger btn-sm btn-block" type="submit">Join</button>
+    <button data-mdb-button-init data-mdb-ripple-init className="btn btn-danger btn-sm btn-block" type="submit">Join</button>
           </div>
-          <div class="collapse" id="collapseFour" aria-labelledby="headingfour" data-parent="#accordion">
+          <div className="collapse" id="collapseFour" aria-labelledby="headingfour" data-parent="#accordion">
             <h2>Sign Up Here</h2>
 
-            <div data-mdb-input-init class="form-outline">
-              <input type="email" id="typeEmailX-2" class="form-control form-control-sm" />
-              <label class="form-label" for="typeEmailX-2">First Name</label>
+            <div data-mdb-input-init className="form-outline">
+              <input type="email" id="typeEmailX-2" className="form-control form-control-sm" />
+              <label className="form-label" htmlFor="typeEmailX-2">First Name</label>
             </div>     
             
-            <div data-mdb-input-init class="form-outline">
-              <input type="email" id="typeEmailX-2" class="form-control form-control-sm" />
-              <label class="form-label" for="typeEmailX-2">Last Name</label>
+            <div data-mdb-input-init className="form-outline">
+              <input type="email" id="typeEmailX-2" className="form-control form-control-sm" />
+              <label className="form-label" htmlFor="typeEmailX-2">Last Name</label>
             </div>
 
-    <div data-mdb-input-init class="form-outline">
-      <input type="email" id="typeEmailX-2" class="form-control form-control-sm" />
-      <label class="form-label" for="typeEmailX-2">Email</label>
+    <div data-mdb-input-init className="form-outline">
+      <input type="email" id="typeEmailX-2" className="form-control form-control-sm" />
+      <label className="form-label" htmlFor="typeEmailX-2">Email</label>
     </div>
 
-    <div data-mdb-input-init class="form-outline">
-      <input type="password" id="typePasswordX-2" class="form-control form-control-sm" />
-      <label class="form-label" for="typePasswordX-2">Club Name</label>
+    <div data-mdb-input-init className="form-outline">
+      <input type="password" id="typePasswordX-2" className="form-control form-control-sm" />
+      <label className="form-label" htmlFor="typePasswordX-2">Club Name</label>
     </div>
 
-    <button data-mdb-button-init data-mdb-ripple-init class="btn btn-danger btn-sm btn-block" type="submit">Join</button>
+    <button data-mdb-button-init data-mdb-ripple-init className="btn btn-danger btn-sm btn-block" type="submit">Join</button>
           </div>
         </div>
       </div>
