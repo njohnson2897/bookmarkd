@@ -48,7 +48,7 @@ mutation Mutation($book: ID!, $user: ID!, $status: String!, $favorite: Boolean!)
 `
 
 export const ADD_REVIEW = gql`
-mutation Mutation($book: ID!, $user: ID!, $stars: Int!, $title: String, $description: String) {
+mutation Mutation($book: ID!, $user: ID!, $stars: Float!, $title: String, $description: String) {
   addReview(book: $book, user: $user, stars: $stars, title: $title, description: $description) {
     _id
     book {
@@ -109,6 +109,40 @@ mutation Mutation($bookId: ID!, $userId: ID!) {
         _id
         google_id
       }
+    }
+    username
+  }
+}
+`
+
+export const EDIT_USER_BOOK_FAVORITE = gql`
+mutation Mutation($bookId: ID!, $userId: ID!) {
+  editUserBookFavorite(bookId: $bookId, userId: $userId) {
+    _id
+    books {
+      book {
+        _id
+        google_id
+      }
+      favorite
+      status
+    }
+    username
+  }
+}
+`
+
+export const EDIT_USER_BOOK_STATUS = gql`
+mutation Mutation($bookId: ID!, $userId: ID!, $status: String) {
+  editUserBookStatus(bookId: $bookId, userId: $userId, status: $status) {
+    _id
+    books {
+      book {
+        _id
+        google_id
+      }
+      favorite
+      status
     }
     username
   }
