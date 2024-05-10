@@ -1,4 +1,5 @@
-const { User, Book, Club, Review } = require('../models')
+const { User, Book, Club, Review } = require('../models');
+const { AuthenticationError, signToken } = require('../utils/auth');
 
 
 const resolvers = {
@@ -19,7 +20,9 @@ const resolvers = {
 
     Mutation: {
         addUser: async (parent, {username, email, password}) => {
-            return User.create({ username, email, password });
+            const user = await User.create({ username, email, password });
+            const token = signToken(user);
+            return { token, user }
         },
         addBook: async (parent, {google_id}) => {
             return Book.create({ google_id })
@@ -42,6 +45,23 @@ const resolvers = {
             );
             return review;
         },
+        login: async (parent, { email, password }) => {
+            const user = await User.findOne({ email });
+      
+            if (!user) {
+              throw AuthenticationError;
+            }
+      
+            const correctPw = await user.isCorrectPassword(password);
+      
+            if (!correctPw) {
+              throw AuthenticationError;
+            }
+      
+            const token = signToken(user);
+      
+            return { token, user };
+          },
         addClub: async (parent, {name, owner}) => {
             return Club.create({ name, owner });
         },

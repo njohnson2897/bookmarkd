@@ -8,6 +8,8 @@ import Review from "./pages/Review.jsx";
 import Search from "./pages/Search.jsx";
 import User from "./pages/User.jsx";
 import Error from "./pages/Error.jsx";
+import Club from './pages/Club.jsx'
+import Profile from "./pages/Profile.jsx";
 import "./index.css";
 
 const router = createBrowserRouter([
@@ -21,21 +23,30 @@ const router = createBrowserRouter([
         element: <Home />,
       },
       {
-        path: "book/:bookId",
+        path: "books/:bookId",
         element: <Book />,
       },
       {
-        path: "user/:userId",
+        path: "users",
         element: <User />,
+      },
+      {
+        path: "profile/:profileId",
+        element: <Profile />,
       },
       {
         path: "search",
         element: <Search />,
       },
       {
-        path: "review/:reviewId",
+        path: "reviews",
         element: <Review />,
+      },
+      {
+        path: "clubs",
+        element: <Club />,
       }
+
     ],
   },
 ]);

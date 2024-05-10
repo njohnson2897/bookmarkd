@@ -21,6 +21,11 @@ type BookStatus {
     favorite: Boolean
 }
 
+type Auth {
+    token: ID!
+    user: User
+}
+
 type Review {
     _id: ID!
     book: Book!
@@ -47,7 +52,7 @@ type Query {
 }
 
 type Mutation {
-    addUser(username: String!, email: String!, password: String!): User
+    addUser(username: String!, email: String!, password: String!): Auth
     addBook(google_id: String!): Book
     addBookStatus(book: ID!, user: ID!, status: String!, favorite: Boolean!): User
     addReview(book: ID!, user: ID!, stars: Int!, title: String, description: String): Review
@@ -55,6 +60,7 @@ type Mutation {
     deleteReview(reviewId: ID!): Review
     deleteClub(clubId: ID!): Club
     removeUserBook(bookId: ID!, userId: ID!): User
+    login(email: String!, password: String!): Auth
 }
 `;
 
