@@ -9,7 +9,7 @@ const clubSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User'
     },
-    memebers: [
+    members: [
         {
             type: Schema.Types.ObjectId,
             ref: 'User',

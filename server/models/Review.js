@@ -1,11 +1,11 @@
 const { Schema, model } = require('mongoose');
 
 const reviewSchema = new Schema({
-    book_id: {
+    book: {
         type: Schema.Types.ObjectId,
         ref: 'Book'
     },
-    user_id: {
+    user: {
         type: Schema.Types.ObjectId,
         ref: 'User'
     },

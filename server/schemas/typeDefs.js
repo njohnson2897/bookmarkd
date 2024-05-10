@@ -55,8 +55,11 @@ type Mutation {
     addUser(username: String!, email: String!, password: String!): Auth
     addBook(google_id: String!): Book
     addBookStatus(book: ID!, user: ID!, status: String!, favorite: Boolean!): User
-    addReview(book_id: ID!, user_id: ID!, stars: Int!, title: String, description: String): Review
+    addReview(book: ID!, user: ID!, stars: Int!, title: String, description: String): Review
     addClub(name: String!, owner: ID!): Club
+    deleteReview(reviewId: ID!): Review
+    deleteClub(clubId: ID!): Club
+    removeUserBook(bookId: ID!, userId: ID!): User
     login(email: String!, password: String!): Auth
 }
 `;
