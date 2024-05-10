@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 function Navbar() {
     const alertTest = function(e){
@@ -12,6 +12,8 @@ function Navbar() {
       const bottom = document.getElementById('bottom');
       bottom.scrollIntoView({ behavior: 'smooth' });
     }
+
+    const currentPage =  useLocation().pathname;
 
     return (
     <div className="hero_area">
@@ -34,7 +36,7 @@ function Navbar() {
                 <Link className='nav-link' to='/'>Home</Link>
               </li>
               <li className="nav-item">
-                <Link className='nav-link' onClick={scrollToBottom}>Contact Us</Link>
+                <Link className='nav-link' to={currentPage} onClick={scrollToBottom}>Contact Us</Link>
               </li>
               <li className="nav-item">
                 <Link className='nav-link' to='/users'>Users</Link>
