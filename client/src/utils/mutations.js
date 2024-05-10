@@ -23,23 +23,94 @@ mutation Mutation($username: String!, $email: String!, $password: String!) {
     }
   }`
 
-// export const ADD_BOOK = gql`
-// `
+export const ADD_BOOK = gql`
+mutation Mutation($googleId: String!) {
+  addBook(google_id: $googleId) {
+    _id
+    google_id
+  }
+}
+`
 
-// export const ADD_BOOK_STATUS = gql`
-// `
+export const ADD_BOOK_STATUS = gql`
+mutation Mutation($book: ID!, $user: ID!, $status: String!, $favorite: Boolean!) {
+  addBookStatus(book: $book, user: $user, status: $status, favorite: $favorite) {
+    _id
+    username
+    books {
+      book {
+        _id
+        google_id
+      }
+    }
+  }
+}
+`
 
-// export const ADD_REVIEW = gql`
-// `
+export const ADD_REVIEW = gql`
+mutation Mutation($book: ID!, $user: ID!, $stars: Int!, $title: String, $description: String) {
+  addReview(book: $book, user: $user, stars: $stars, title: $title, description: $description) {
+    _id
+    book {
+      _id
+      google_id
+    }
+    description
+    stars
+    title
+  }
+}
+`
 
-// export const ADD_CLUB = gql`
-// `
+export const ADD_CLUB = gql`
+mutation Mutation($name: String!, $owner: ID!) {
+  addClub(name: $name, owner: $owner) {
+    _id
+    name
+    owner {
+      _id
+      username
+    }
+  }
+}
+`
 
-// export const DELETE_REVIEW = gql`
-// `
+export const DELETE_REVIEW = gql`
+mutation Mutation($reviewId: ID!) {
+  deleteReview(reviewId: $reviewId) {
+    _id
+    book {
+      _id
+      google_id
+    }
+  }
+}
+`
 
-// export const DELETE_CLUB = gql`
-// `
+export const DELETE_CLUB = gql`
+mutation Mutation($clubId: ID!) {
+  deleteClub(clubId: $clubId) {
+    _id
+    name
+    owner {
+      _id
+      username
+    }
+  }
+}
+`
 
-// export const REMOVE_USER_BOOK = gql`
-// `
+export const REMOVE_USER_BOOK = gql`
+mutation Mutation($bookId: ID!, $userId: ID!) {
+  removeUserBook(bookId: $bookId, userId: $userId) {
+    _id
+    books {
+      book {
+        _id
+        google_id
+      }
+    }
+    username
+  }
+}
+`
