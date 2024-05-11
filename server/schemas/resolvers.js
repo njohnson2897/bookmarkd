@@ -16,6 +16,13 @@ const resolvers = {
         book: async (parent, {id}) => {
             return Book.findOne({ _id: id }).populate('reviews')
         },
+        bookGoogle: async (parent, {googleId}) => {
+            const bookExists = await Book.findOne({ google_id: googleId});
+            if(bookExists){
+                return bookExists;
+            }
+            return bookExists;
+        },
         reviews: async () => {
             return Review.find();
         },

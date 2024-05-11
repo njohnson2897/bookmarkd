@@ -47,6 +47,7 @@ type Query {
     user(id: ID!): User!
     books: [Book!]
     book(id: ID!): Book!
+    bookGoogle(googleId: String): Book
     reviews: [Review!]
     review(id: ID!): Review!
     clubs: [Club!]
