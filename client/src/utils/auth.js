@@ -30,7 +30,8 @@ class AuthService {
 
   login(idToken) {
     localStorage.setItem('id_token', idToken);
-    window.location.assign('/');
+    const decoded = decode(idToken)
+    window.location.assign(`/profile/${decoded.data._id}`);
   }
 
   logout() {

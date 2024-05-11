@@ -1,36 +1,34 @@
-import React from 'react';
+import { useQuery } from '@apollo/client';
+import { QUERY_USERS } from '../utils/queries';
+import UserCard from '../components/UserCard';
 
 const User = () => {
-  const isAuthenticated = true;
 
-  const bookSnobs = [
-    { id: 1, name: 'Book Snob 1', club: 'Reading Club 1' },
-    { id: 2, name: 'Book Snob 2', club: 'Reading Club 2' },
-    { id: 3, name: 'Book Snob 3', club: 'Reading Club 3' }
-  ];
+  const { loading, error, data } = useQuery(QUERY_USERS);
 
-  const users = [...bookSnobs];
+  if (loading) return <div>Loading</div>
+
+  if (error) return <div>Error: {error.message}</div>
+
+  const users = data?.users || []
 
   return (
-    <div className='user-container'>
-      <h2 className='popular-snobs'>Popular Snobs</h2>
-      <div className="user-profiles">
-        {users.map((user) => (
-          <div key={user.id} className="user-profile">
-            <img src={user.image} alt={user.name} />
-            <p>{user.name}</p>
-          </div>
-        ))}
-        <div className="book-snobs">
-          <h3>Book Snobs</h3>
-          {bookSnobs.map((bookSnob) => (
-            <div key={bookSnob.id} className="book-snob">
-              <p>{bookSnob.name} - {bookSnob.club}</p>
+    <main>
+      <div className="flex-row justify-center">
+        <div className="col-12 col-md-8 mb-3">
+          {/* If the data is still loading, render a loading message */}
+          {loading ? (
+            <div>Loading...</div>
+          ) : (
+            <div>
+            {users.map((user) => (
+              <UserCard key={user._id} user={user}></UserCard>
+            ))}
             </div>
-          ))}
+      )}
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 
