@@ -1,68 +1,62 @@
-import React, { useState } from 'react';
-import Navbar from '../components/Navbar';
+import { useQuery } from "@apollo/client";
+import { useParams } from "react-router-dom";
+import { QUERY_USER } from "../utils/queries";
+
+// good example in module 21 activity 25
 
 const Profile = () => {
-    const [user, setUser] = useState({
-        name: '',
-        avatar: '',
-        toReadBooks: ['Book 1', 'Book 2', 'Book 3', 'Book 4', 'Book 5'],
-        recentReviews: [
-            { book: 'Book A', rating: null },
-            { book: 'Book B', rating: null },
-            { book: 'Book C', rating: null },
-        ],
-        clubs: ['Club X', 'Club Y'],
-    });
+  const { profileId } = useParams();
 
-    const handleAvatarChange = (e) => {
-        const file = e.target.files[0];
-        const reader = new FileReader();
-        reader.onload = () => {
-            setUser({ ...user, avatar: reader.result });
-        };
-        reader.readAsDataURL(file);
-    };
+  console.log(profileId);
 
-    return (
-        <div className="profile-page">
-            <h2 className="profile-header">{user.name}'s Profile</h2>
+  const { loading, data } = useQuery(QUERY_USER, {
+    variables: { userId: profileId },
+  });
 
-            <div className="avatar-section">
-                <h3>Avatar</h3>
-                <input type="file" accept="image/*" onChange={handleAvatarChange} />
-                {user.avatar && <img src={user.avatar} alt="User Avatar" />}
-            </div>
+  const user = data?.user || {};
 
-            <div className="to-read-section">
-                <h3>To Read</h3>
-                <ul>
-                    {user.toReadBooks.map((book, index) => (
-                        <li key={index}>{book}</li>
-                    ))}
-                </ul>
-            </div>
+  if (loading) {
+    return <div> Loading... </div>;
+  }
 
-            <div className="recent-reviews-section">
-                <h3>Recent Reviews</h3>
-                <ul>
-                    {user.recentReviews.map((review, index) => (
-                        <li key={index}>
-                            {review.book} (Rating: {review.rating})
-                        </li>
-                    ))}
-                </ul>
-            </div>
+  return (
+    <div className="profile-page">
+      <h2 className="profile-header">{user.username}'s Profile</h2>
 
-            <div className="clubs-section">
-                <h3>Clubs</h3>
-                <ul>
-                    {user.clubs.map((club, index) => (
-                        <li key={index}>{club}</li>
-                    ))}
-                </ul>
-            </div>
+      <h3>To Read:</h3>
+      {user.books.length > 0 && (
+        <div className="to-read-section">
+          <ul>
+            {user.books.map((book, index) => (
+              <li key={index}>{book.title}</li>
+            ))}
+          </ul>
         </div>
-    );
+      )}
+      <h3>Recent Reviews:</h3>
+      {user.reviews.length > 0 && (
+        <div className="recent-reviews-section">
+          <ul>
+            {user.reviews.map((review, index) => (
+              <li key={index}>
+                {review.book} (Rating: {review.rating})
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+        <h3>Clubs:</h3>
+      {user.clubs.length > 0 && (
+        <div className="clubs-section">
+          <ul>
+            {user.clubs.map((club, index) => (
+              <li key={index}>{club}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default Profile;

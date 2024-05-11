@@ -11,7 +11,7 @@ type User {
 
 type Book {
     _id: ID!
-    google_id: String!
+    google_id: String
     reviews: [Review]
 }
 

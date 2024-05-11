@@ -22,6 +22,29 @@ query Query {
 }
 `
 
+export const QUERY_USER = gql`
+query Query($userId: ID!) {
+  user(id: $userId) {
+    _id
+    username
+    books {
+      book {
+        _id
+        google_id
+      }
+    }
+    clubs {
+      _id
+      name
+    }
+    reviews {
+      _id
+      title
+      description
+    }
+  }
+}`
+
 export const QUERY_BOOKS = gql`
 query Books {
     books {

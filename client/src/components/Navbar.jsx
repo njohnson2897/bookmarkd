@@ -20,6 +20,8 @@ function Navbar() {
     const decodedToken = Auth.getProfile();
     const currentUserId = decodedToken.data._id
     const currentUserPath = `/profile/${currentUserId}`
+    // conditional rendering of nav bar depending on whether you're logged in or out
+    // make sure to wrap all of the conditional logic in a div
 
     return (
     <div className="hero_area">
