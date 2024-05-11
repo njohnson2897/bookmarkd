@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function Search() {
 
@@ -23,12 +24,11 @@ const handleFormSubmit = async (e) => {
     }
 
     const  { items } = await response.json();
-
+    console.log(items);
     const bookData = items.map((book) => ({
         bookId: book.id,
         authors: book.volumeInfo.authors || ['No author to display'],
         title: book.volumeInfo.title,
-        description: book.volumeInfo.description,
         image: book.volumeInfo.imageLinks?.thumbnail || '',
         rating: book.volumeInfo.averageRating
       }));
@@ -38,7 +38,10 @@ const handleFormSubmit = async (e) => {
   } catch (error) {
     console.error("There was a problem fetching the data:", error);
   }
+
 };
+
+const navigate = useNavigate();
 
 return (
     <div>
@@ -60,13 +63,14 @@ return (
       alt={book.title}
       className="img-fluid text-center"
       src={book.image}
+      onClick={(event) => {
+        event.preventDefault();
+        navigate(`/books/${book.bookId}`)
+      }}
     />
     <p>Author(s): {book.authors}</p>
     {book.rating && (
       <p>Rating: {book.rating}</p>
-    )}
-    {book.description && (
-      <p>Description: {book.description}</p>
     )}
   </div>
 ))}
