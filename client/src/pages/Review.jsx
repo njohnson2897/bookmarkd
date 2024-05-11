@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 const generateRandomComment = (bookTitle) => {
   const adjectives = ['Amazing', 'Thoughtful', 'Captivating', 'Insightful', 'Engaging'];
@@ -71,7 +71,7 @@ const ReviewsPage = () => {
       <h1>Book Reviews</h1>
       <div className="review-list">
         {reviews.map((review) => (
-          <div key={review.id} className="review-card">
+          <div key={review.id} className="review-card border border-black py-3 my-3">
             <img src={review.bookCover} alt={review.bookTitle} />
             <h2>{review.bookTitle}</h2>
             <p>By {review.author}</p>

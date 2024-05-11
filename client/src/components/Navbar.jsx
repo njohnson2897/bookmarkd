@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
+import Auth from '../utils/auth'
 
 function Navbar() {
     const alertTest = function(e){
@@ -14,6 +15,11 @@ function Navbar() {
     }
 
     const currentPage =  useLocation().pathname;
+
+    
+    const decodedToken = Auth.getProfile();
+    const currentUserId = decodedToken.data._id
+    const currentUserPath = `/profile/${currentUserId}`
 
     return (
     <div className="hero_area">
@@ -39,7 +45,10 @@ function Navbar() {
                 <Link className='nav-link' to={currentPage} onClick={scrollToBottom}>Contact Us</Link>
               </li>
               <li className="nav-item">
-                <Link className='nav-link' to='/users'>User Profile</Link>
+                <Link className='nav-link' to='/users'>Users</Link>
+              </li>
+              <li className="nav-item">
+                <Link className='nav-link' to={currentUserPath}>My Profile</Link>
               </li>
               <li className="nav-item">
                 <Link className='nav-link' to='/clubs'>Book Clubs</Link>
