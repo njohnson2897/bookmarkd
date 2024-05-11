@@ -13,11 +13,20 @@ const resolvers = {
         books: async () => {
             return Book.find();
         },
+        book: async (parent, {id}) => {
+            return Book.findOne({ _id: id }).populate('reviews')
+        },
         reviews: async () => {
             return Review.find();
         },
+        review: async(parent, {id}) => {
+            return Review.findOne({ _id: id })
+        },
         clubs: async () => {
             return Club.find();
+        },
+        club: async (parent, {id}) => {
+            return Club.findOne({ _id: id })
         }
     },
 
