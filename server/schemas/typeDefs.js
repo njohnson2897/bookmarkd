@@ -46,8 +46,12 @@ type Query {
     users: [User!]
     user(id: ID!): User!
     books: [Book!]
+    book(id: ID!): Book!
+    bookGoogle(googleId: String): Book
     reviews: [Review!]
+    review(id: ID!): Review!
     clubs: [Club!]
+    club(id: ID!): Club!
 }
 
 type Mutation {
