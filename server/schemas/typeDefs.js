@@ -45,7 +45,6 @@ type Club {
 type Query {
     users: [User!]
     user(id: ID!): User!
-    userByName(name: String!): User!
     books: [Book!]
     reviews: [Review!]
     clubs: [Club!]
