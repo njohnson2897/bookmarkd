@@ -42,8 +42,13 @@ query Query($userId: ID!) {
       title
       description
     }
+    bio
+    location
+    favBook
+    favAuthor
   }
-}`
+}
+`
 
 export const QUERY_BOOKS = gql`
 query Books {

@@ -134,7 +134,14 @@ const resolvers = {
                 { $set: { 'books.$.favorite': favorite } },
                 { new: true}
             )
-        }
+        },
+        updateUser: async (parent, { id, bio, location, favBook, favAuthor }) => {
+            return await User.findOneAndUpdate(
+              { _id: id },
+              { bio: bio, location: location, favBook: favBook, favAuthor: favAuthor },
+              { new: true }
+            )
+      },
     }
 };
 

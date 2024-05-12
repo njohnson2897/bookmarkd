@@ -4,6 +4,10 @@ type User {
     username: String!
     email: String!
     password: String!
+    bio: String
+    location: String
+    favAuthor: String
+    favBook: String
     books: [BookStatus]
     reviews: [Review]
     clubs: [Club]
@@ -56,6 +60,7 @@ type Query {
 
 type Mutation {
     addUser(username: String!, email: String!, password: String!): Auth
+    updateUser(id: ID!, bio: String, location: String, favBook: String, favAuthor: String): User
     addBook(google_id: String!): Book
     addBookStatus(book: ID!, user: ID!, status: String!, favorite: Boolean!): User
     addReview(book: ID!, user: ID!, stars: Float!, title: String, description: String): Review

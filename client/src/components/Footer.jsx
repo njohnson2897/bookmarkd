@@ -77,7 +77,7 @@ function Footer() {
                 </h5>
 
                 {/* Changed from class= to className */}
-                <div className="form">
+                <div className="form" id='bottom'>
                   <form>
                       <div className="form-group">
                         {/* Changed from emailarea to textarea*/}
