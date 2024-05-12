@@ -20,10 +20,11 @@ const Profile = () => {
   }
 
   return (
-    <div className="profile-page">
-      <h2 className="profile-header">{user.username}'s Profile</h2>
+    <div className="profile-page my-3">
+      <h1 className="profile-header my-3">{user.username}'s Profile</h1>
+      <div className='border border-black'>
 
-      <h3>To Read:</h3>
+      <h4 className='mt-3 mb-5'>To Read:</h4>
       {user.books.length > 0 && (
         <div className="to-read-section">
           <ul>
@@ -33,7 +34,7 @@ const Profile = () => {
           </ul>
         </div>
       )}
-      <h3>Recent Reviews:</h3>
+      <h4 className='my-5'>Recent Reviews:</h4>
       {user.reviews.length > 0 && (
         <div className="recent-reviews-section">
           <ul>
@@ -45,7 +46,7 @@ const Profile = () => {
           </ul>
         </div>
       )}
-        <h3>Clubs:</h3>
+        <h4 className='my-5'>Clubs:</h4>
       {user.clubs.length > 0 && (
         <div className="clubs-section">
           <ul>
@@ -55,6 +56,7 @@ const Profile = () => {
           </ul>
         </div>
       )}
+      </div>
     </div>
   );
 };
