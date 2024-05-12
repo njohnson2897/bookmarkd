@@ -148,3 +148,15 @@ mutation Mutation($bookId: ID!, $userId: ID!, $status: String) {
   }
 }
 `
+
+export const UPDATE_USER = gql`
+mutation Mutation($updateUserId: ID!, $bio: String, $location: String, $favBook: String, $favAuthor: String) {
+  updateUser(id: $updateUserId, bio: $bio, location: $location, favBook: $favBook, favAuthor: $favAuthor) {
+    _id
+    username
+    bio
+    location
+    favBook
+    favAuthor
+  }
+}`

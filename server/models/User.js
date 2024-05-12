@@ -18,6 +18,18 @@ const userSchema = new Schema({
         required: true,
         minlength: 8,
     },
+    bio: {
+        type: String,
+    },
+    location: {
+        type: String,
+    },
+    favAuthor: {
+        type: String,
+    },
+    favBook: {
+        type: String
+    },
     books: [
         bookStatusSchema
     ],
