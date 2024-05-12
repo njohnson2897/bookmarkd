@@ -77,16 +77,16 @@ const ReviewsPage = () => {
             <p>By {review.author}</p>
             <p>Reviewed by {review.reviewer}</p>
             <p>{review.reviewText}</p>
-            <div className="rating">
+            <div className="rating mb-3">
               {[...Array(5)].map((_, index) => (
                 <span key={index} role="img" aria-label="star">
                   ⭐️
                 </span>
               ))}
             </div>
-            <button>Like</button>
-            <button>Comment</button>
-            <button>Share</button>
+            <button className='mx-2'>Like</button>
+            <button className='mx-2'>Comment</button>
+            <button className='mx-2'>Share</button>
           </div>
         ))}
       </div>

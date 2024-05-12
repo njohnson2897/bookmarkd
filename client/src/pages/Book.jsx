@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
 const Book = () => {
@@ -42,8 +42,8 @@ const Book = () => {
   }, [bookId]);
 
   return (
-    <div className="book">
-      <img src={book.coverImage} alt={`${book.title} Cover`} />
+    <div className="book border border-black my-3 p-3">
+      <img src={book.coverImage} className='mt-3' alt={`${book.title} Cover`} />
       <h3>{book.title}</h3>
       <p>Author: {book.author}</p>
       <p>{book.description}</p>

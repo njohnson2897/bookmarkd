@@ -54,9 +54,9 @@ function Search() {
 
   return (
     <div>
-      <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
+      <form className='mb-3' onSubmit={handleFormSubmit} style={{ display: 'flex', flexWrap: 'wrap', gap: '60px' }}>
 
-        <div className="mb-3" style={{ flexBasis: '100%' }}>
+        <div className='mt-4' style={{ flexBasis: '100%' }}>
           <label htmlFor="booksearch" className="form-label">
             Enter a book title here:
           </label>
@@ -118,10 +118,11 @@ function Search() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
         {searchedBook.map((book) => (
-          <div key={book.bookId}>
+          <div key={book.bookId} className='border border-black'>
             <img
               alt={book.title}
               style={{ maxWidth: '100%' }}
+              className='mt-3'
               src={book.image}
               onClick={() => navigate(`/books/${book.bookId}`)}
             />
