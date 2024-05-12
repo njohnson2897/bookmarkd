@@ -63,6 +63,24 @@ query Books {
   }
 `
 
+export const QUERY_BOOKGOOGLE = gql`
+query Query($googleId: String) {
+  bookGoogle(googleId: $googleId) {
+    _id
+    reviews {
+      _id
+      description
+      stars
+      title
+      user {
+        username
+        _id
+      }
+    }
+  }
+}
+`
+
 export const QUERY_REVIEWS = gql`
 query Reviews {
     reviews {
