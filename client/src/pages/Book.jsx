@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useMutation, useQuery } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client';
 import { QUERY_BOOKGOOGLE } from '../utils/queries';
-import { ADD_BOOK_STATUS } from '../utils/mutations'; 
+import { ADD_BOOK_STATUS, ADD_BOOK } from '../utils/mutations';
 import decode from 'jwt-decode';
 import Auth from '../utils/auth';
-
 
 const Book = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,9 +49,22 @@ const Book = () => {
     fetchBook();
   }, [bookId]);
 
-   // create function to handle saving a book to our database
-    
-    const [addBookStatusMutation] = useMutation(ADD_BOOK_STATUS);
+  useEffect(() => {
+    const checkForBook = async () => {
+      try { 
+        console.log(data);
+        if(data === undefined){}
+        else{
+        data.bookGoogle ? console.log("Book Exists") : await addBook({ variables: { googleId: bookId } })
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    checkForBook();
+  }, [data, addBook])
+
+  const [addBookStatusMutation] = useMutation(ADD_BOOK_STATUS);
 
     const getUserId = () => {
       const idToken = localStorage.getItem('id_token')
@@ -61,18 +73,15 @@ const Book = () => {
       return decoded.data._id
     };
 
-    const { loading, data, refetch } = useQuery(QUERY_BOOKGOOGLE, {
-      variables: {googleId: bookId}
-    });
-  const bookDataId = data || []
-    const handleSaveBook = async (book) => {
-      console.log(bookDataId)
+    const handleSaveBook = async () => {
+      const realBookId = data.bookGoogle._id
       try {
+        console.log(realBookId)
         await addBookStatusMutation({
           variables: {
-            book: bookId,
+            book: realBookId,
             user: getUserId(), // Add the user ID if needed
-            status: "reading",
+            status: "To-Read",
             favorite: false
           }
         });
@@ -82,23 +91,22 @@ const Book = () => {
         // Handle error, e.g., set a state for error message
       }
     };
-  
 
-  return (
-    <div className="book border border-black my-3 p-3">
-      <img src={book.coverImage} className='mt-3' alt={`${book.title} Cover`} />
-      <h3>{book.title}</h3>
-      <p>Author: {book.author}</p>
-      <p>{book.description}</p>
-      {loading ? (
-        <div>loading...</div>
-      ):Auth.getToken()?( 
-      <button
-        className='btn-block btn-info'
-        onClick={() => handleSaveBook(book)}>Save
-      </button>):""}
-    </div>
-  );
-};
+    return (
+      <div className="book border border-black my-3 p-3">
+        <img src={book.coverImage} className='mt-3' alt={`${book.title} Cover`} />
+        <h3>{book.title}</h3>
+        <p>Author: {book.author}</p>
+        <p>{book.description}</p>
+        {loading ? (
+          <div>loading...</div>
+        ):Auth.getToken()?( 
+        <button
+          className='btn-block btn-info'
+          onClick={() => handleSaveBook(book)}>Save
+        </button>):""}
+      </div>
+    );
+  };
 
 export default Book;

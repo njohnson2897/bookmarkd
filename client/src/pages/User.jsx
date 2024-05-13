@@ -12,6 +12,8 @@ const User = () => {
 
   const users = data?.users || []
 
+  console.log(users)
+  
   return (
     <main>
       <div className="flex-row justify-center">
