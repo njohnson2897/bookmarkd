@@ -117,3 +117,21 @@ query Clubs {
     }
   }
 `
+
+export const QUERY_BOOKGOOGLE = gql`
+query Query($googleId: String) {
+  bookGoogle(googleId: $googleId) {
+    _id
+    reviews {
+      _id
+      description
+      stars
+      title
+      user {
+        username
+        _id
+      }
+    }
+  }
+}
+`

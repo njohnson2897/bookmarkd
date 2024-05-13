@@ -55,8 +55,6 @@ body {
 
   -ms-flex-direction: column;
   flex-direction: column;
-  position: ;
-
 }
 
 .sub_page .hero_area {
@@ -96,6 +94,7 @@ body {
   display: -ms-flexbox;
   display: flex;
   color: #ffffff;
+  background-color: transparent;
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
@@ -271,15 +270,15 @@ a:focus {
 
 .slider_section .detail-box .btn-box .btn-1:hover {
   background-color: transparent;
-  border-color: #ff4f5a;
+  border-color: rgb(255, 79, 90);
   color: #ff4f5a;
 }
 
 .slider_section .detail-box .btn-box .btn-2 {
   display: inline-block;
   padding: 10px 0;
-  background-color: #ffffff;
-  color: #252525;
+  background-color: rgb(255, 79, 90);
+  color: #ffffff;
   -webkit-transition: all 0.3s;
   transition: all 0.3s;
   border: 1px solid transparent;
@@ -288,8 +287,8 @@ a:focus {
 
 .slider_section .detail-box .btn-box .btn-2:hover {
   background-color: transparent;
-  border-color: #ffffff;
-  color: #ffffff;
+  border-color: rgb(255, 79, 90);
+  color: rgb(255, 79, 90);
 }
 
 .slider_section .img-container .img-box img {

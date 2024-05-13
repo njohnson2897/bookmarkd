@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import Auth from "../utils/auth";
 
+
 function Navbar() {
   const alertTest = function (e) {
     e.preventDefault();

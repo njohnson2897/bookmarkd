@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useQuery, useMutation } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import { QUERY_BOOKGOOGLE } from '../utils/queries';
-import { ADD_BOOK } from '../utils/mutations';
+import { ADD_BOOK_STATUS } from '../utils/mutations'; 
+import decode from 'jwt-decode';
+import Auth from '../utils/auth';
+
 
 const Book = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -47,20 +50,39 @@ const Book = () => {
     fetchBook();
   }, [bookId]);
 
-  useEffect(() => {
-    const checkForBook = async () => {
-      try { 
-        console.log(data);
-        if(data === undefined){}
-        else{
-        data.bookGoogle ? console.log("Book Exists") : await addBook({ variables: { googleId: bookId } })
-        }
-      } catch (err) {
-        console.error(err);
+   // create function to handle saving a book to our database
+    
+    const [addBookStatusMutation] = useMutation(ADD_BOOK_STATUS);
+
+    const getUserId = () => {
+      const idToken = localStorage.getItem('id_token')
+      const decoded = decode(idToken)
+      console.log(decoded.data._id)
+      return decoded.data._id
+    };
+
+    const { loading, data, refetch } = useQuery(QUERY_BOOKGOOGLE, {
+      variables: {googleId: bookId}
+    });
+  const bookDataId = data || []
+    const handleSaveBook = async (book) => {
+      console.log(bookDataId)
+      try {
+        await addBookStatusMutation({
+          variables: {
+            book: bookId,
+            user: getUserId(), // Add the user ID if needed
+            status: "reading",
+            favorite: false
+          }
+        });
+        // Handle response if needed
+      } catch (error) {
+        console.error(error);
+        // Handle error, e.g., set a state for error message
       }
-    }
-    checkForBook();
-  }, [data, addBook])
+    };
+  
 
   return (
     <div className="book border border-black my-3 p-3">
@@ -68,6 +90,13 @@ const Book = () => {
       <h3>{book.title}</h3>
       <p>Author: {book.author}</p>
       <p>{book.description}</p>
+      {loading ? (
+        <div>loading...</div>
+      ):Auth.getToken()?( 
+      <button
+        className='btn-block btn-info'
+        onClick={() => handleSaveBook(book)}>Save
+      </button>):""}
     </div>
   );
 };
