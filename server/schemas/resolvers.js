@@ -27,10 +27,11 @@ const resolvers = {
         addBook: async (parent, {google_id}) => {
             return Book.create({ google_id })
         },
-        addBookStatus: async (parent, {book, user, status ,favorite}) => {
+        addBookStatus: async (parent, {book, user, status ,favorite}) => { 
+            const {bookId} = await Book.findOne({google_id:book})
             return User.findOneAndUpdate(
                 { _id: user },
-                { $addToSet: { books: { book, status, favorite }}}
+                { $addToSet: { books: { bookId, status, favorite }}}
             )
         },
         addReview: async (parent, {book, user, stars, title, description}) => {
