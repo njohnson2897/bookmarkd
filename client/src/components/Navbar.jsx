@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import Auth from '../utils/auth'
 
+
 function Navbar() {
     const alertTest = function(e){
         e.preventDefault();
@@ -14,12 +15,11 @@ function Navbar() {
       bottom.scrollIntoView({ behavior: 'smooth' });
     }
 
-    const currentPage =  useLocation().pathname;
-
-    
     const decodedToken = Auth.getProfile();
-    const currentUserId = decodedToken.data._id
+    const currentUserId = decodedToken.data? decodedToken.data._id:""
     const currentUserPath = `/profile/${currentUserId}`
+
+    const currentPage =  useLocation().pathname;
 
     return (
     <div className="hero_area">

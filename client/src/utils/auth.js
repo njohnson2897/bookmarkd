@@ -3,7 +3,7 @@ import decode from 'jwt-decode';
 
 class AuthService {
   getProfile() {
-    return decode(this.getToken());
+    return localStorage.getItem("id_token")?decode(this.getToken()):{};
   }
 
   loggedIn() {

@@ -4,6 +4,7 @@ import { useMutation, useQuery } from '@apollo/client';
 import { QUERY_BOOKGOOGLE } from '../utils/queries';
 import { ADD_BOOK_STATUS } from '../utils/mutations'; 
 import decode from 'jwt-decode';
+import Auth from '../utils/auth';
 
 const Book = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -86,11 +87,11 @@ const Book = () => {
       <p>{book.description}</p>
       {loading ? (
         <div>loading...</div>
-      ):( 
+      ):Auth.getToken()?( 
       <button
         className='btn-block btn-info'
         onClick={() => handleSaveBook(book)}>Save
-      </button>)}
+      </button>):""}
     </div>
   );
 };
