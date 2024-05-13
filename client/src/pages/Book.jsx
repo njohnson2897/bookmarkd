@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@apollo/client';
 import { QUERY_BOOKGOOGLE } from '../utils/queries';
 import { ADD_BOOK_STATUS } from '../utils/mutations'; 
 import decode from 'jwt-decode';
 import Auth from '../utils/auth';
+
 
 const Book = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -16,7 +17,11 @@ const Book = () => {
     description: 'Description Goes Here'
   });
   const { bookId } = useParams();
-
+  const { loading, data, refetch } = useQuery(QUERY_BOOKGOOGLE, {
+    variables: {googleId: bookId}
+  })
+  const [addBook, { error }] = useMutation(ADD_BOOK);
+  
   useEffect(() => {
     const fetchBook = async () => {
       try {
@@ -42,7 +47,6 @@ const Book = () => {
         // Handle error, e.g., set a state for error message
       }
     };
-
     fetchBook();
   }, [bookId]);
 
@@ -79,9 +83,10 @@ const Book = () => {
       }
     };
   
+
   return (
-    <div className="book">
-      <img src={book.coverImage} alt={`${book.title} Cover`} />
+    <div className="book border border-black my-3 p-3">
+      <img src={book.coverImage} className='mt-3' alt={`${book.title} Cover`} />
       <h3>{book.title}</h3>
       <p>Author: {book.author}</p>
       <p>{book.description}</p>

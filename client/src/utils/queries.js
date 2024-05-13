@@ -22,6 +22,34 @@ query Query {
 }
 `
 
+export const QUERY_USER = gql`
+query Query($userId: ID!) {
+  user(id: $userId) {
+    _id
+    username
+    books {
+      book {
+        _id
+        google_id
+      }
+    }
+    clubs {
+      _id
+      name
+    }
+    reviews {
+      _id
+      title
+      description
+    }
+    bio
+    location
+    favBook
+    favAuthor
+  }
+}
+`
+
 export const QUERY_BOOKS = gql`
 query Books {
     books {
@@ -38,6 +66,24 @@ query Books {
       }
     }
   }
+`
+
+export const QUERY_BOOKGOOGLE = gql`
+query Query($googleId: String) {
+  bookGoogle(googleId: $googleId) {
+    _id
+    reviews {
+      _id
+      description
+      stars
+      title
+      user {
+        username
+        _id
+      }
+    }
+  }
+}
 `
 
 export const QUERY_REVIEWS = gql`

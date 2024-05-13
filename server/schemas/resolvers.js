@@ -7,14 +7,33 @@ const resolvers = {
         users: async ()  => {
             return User.find();
         },
+        user: async (parent, {id}) => {
+            return User.findOne({ _id: id }).populate(['books', 'reviews', 'clubs']);
+        },
         books: async () => {
             return Book.find();
+        },
+        book: async (parent, {id}) => {
+            return Book.findOne({ _id: id }).populate('reviews')
+        },
+        bookGoogle: async (parent, {googleId}) => {
+            const bookExists = await Book.findOne({ google_id: googleId});
+            if(bookExists){
+                return bookExists;
+            }
+            return bookExists;
         },
         reviews: async () => {
             return Review.find();
         },
+        review: async(parent, {id}) => {
+            return Review.findOne({ _id: id })
+        },
         clubs: async () => {
             return Club.find();
+        },
+        club: async (parent, {id}) => {
+            return Club.findOne({ _id: id })
         }
     },
 
@@ -116,7 +135,14 @@ const resolvers = {
                 { $set: { 'books.$.favorite': favorite } },
                 { new: true}
             )
-        }
+        },
+        updateUser: async (parent, { id, bio, location, favBook, favAuthor }) => {
+            return await User.findOneAndUpdate(
+              { _id: id },
+              { bio: bio, location: location, favBook: favBook, favAuthor: favAuthor },
+              { new: true }
+            )
+      },
     }
 };
 

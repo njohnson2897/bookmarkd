@@ -199,22 +199,6 @@ export default function Home() {
                       </label>
                     </div>
 
-                    <div className="form-check d-flex justify-content-start mb-4">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        value=""
-                        id="form1Example3"
-                      />
-                      <label
-                        className="form-check-label"
-                        htmlFor="form1Example3"
-                      >
-                        {" "}
-                        Remember password{" "}
-                      </label>
-                    </div>
-
                     <button
                       onClick={handleLogin}
                       data-mdb-button-init

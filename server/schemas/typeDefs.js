@@ -4,6 +4,10 @@ type User {
     username: String!
     email: String!
     password: String!
+    bio: String
+    location: String
+    favAuthor: String
+    favBook: String
     books: [BookStatus]
     reviews: [Review]
     clubs: [Club]
@@ -11,7 +15,7 @@ type User {
 
 type Book {
     _id: ID!
-    google_id: String!
+    google_id: String
     reviews: [Review]
 }
 
@@ -45,14 +49,18 @@ type Club {
 type Query {
     users: [User!]
     user(id: ID!): User!
-    userByName(name: String!): User!
     books: [Book!]
+    book(id: ID!): Book!
+    bookGoogle(googleId: String): Book
     reviews: [Review!]
+    review(id: ID!): Review!
     clubs: [Club!]
+    club(id: ID!): Club!
 }
 
 type Mutation {
     addUser(username: String!, email: String!, password: String!): Auth
+    updateUser(id: ID!, bio: String, location: String, favBook: String, favAuthor: String): User
     addBook(google_id: String!): Book
     addBookStatus(book: String!, user: ID!, status: String!, favorite: Boolean!): User
     addReview(book: ID!, user: ID!, stars: Float!, title: String, description: String): Review

@@ -14,9 +14,11 @@ const UserCard = ( props ) =>  {
     return (
         <div className='book-snob border border-black my-3' onClick={goToUser}>
             <h1>{props.user.username}</h1>
-                <p>Clubs: {props.user.clubs}</p>
-                <p>Books: {props.user.books}</p>
-                <p>Reviews: {props.user.reviews}</p>
+                <p>Email: {props.user.email}</p>
+                <p>Books: {props.user.books.length}</p>
+                <p>Clubs: {props.user.clubs.length}</p>
+                <p>Reviews: {props.user.reviews.length}</p>
+                
         </div>
     )
 }
