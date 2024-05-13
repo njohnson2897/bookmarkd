@@ -33,7 +33,7 @@ mutation Mutation($googleId: String!) {
 `
 
 export const ADD_BOOK_STATUS = gql`
-mutation Mutation($book: String!, $user: ID!, $status: String!, $favorite: Boolean!) {
+mutation Mutation($book: ID!, $user: ID!, $status: String!, $favorite: Boolean!) {
   addBookStatus(book: $book, user: $user, status: $status, favorite: $favorite) {
     _id
     username

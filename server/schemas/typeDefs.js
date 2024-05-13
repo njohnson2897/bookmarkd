@@ -20,7 +20,7 @@ type Book {
 }
 
 type BookStatus {
-    book: Book!
+    book: Book
     status: String
     favorite: Boolean
 }
@@ -62,7 +62,7 @@ type Mutation {
     addUser(username: String!, email: String!, password: String!): Auth
     updateUser(id: ID!, bio: String, location: String, favBook: String, favAuthor: String): User
     addBook(google_id: String!): Book
-    addBookStatus(book: String!, user: ID!, status: String!, favorite: Boolean!): User
+    addBookStatus(book: ID!, user: ID!, status: String!, favorite: Boolean!): User
     addReview(book: ID!, user: ID!, stars: Float!, title: String, description: String): Review
     addClub(name: String!, owner: ID!): Club
     deleteReview(reviewId: ID!): Review
