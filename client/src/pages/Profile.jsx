@@ -83,7 +83,7 @@ const handleSubmit = async (e) => {
           </form>
       </div>
   );
-  } else  {
+  } else if (profileId !== token.data._id || !token || user.bio || user.location || user.favBook || user.favAuthor ) {
 
   return (
     <div className="profile-page my-3">
