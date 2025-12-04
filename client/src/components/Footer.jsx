@@ -106,35 +106,15 @@ function Footer() {
           </div>
           <div className="flex flex-col gap-2 items-center md:items-start w-full md:w-1/4">
             <h5 className="font-bold text-lg mb-2">Contact Us</h5>
-            <form
-              className="flex flex-col gap-2 w-full"
-              onSubmit={(e) => {
-                e.preventDefault();
-                // Contact form functionality can be added here
-                alert(
-                  "Thank you for your message! We will get back to you soon."
-                );
-              }}
+            <p className="text-sm mb-2">
+              Have a question or feedback? We'd love to hear from you!
+            </p>
+            <Link
+              to="/contact"
+              className="bg-primary1 text-white rounded px-4 py-2 hover:bg-accent transition text-center"
             >
-              <input
-                type="email"
-                className="rounded px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-primary1"
-                placeholder="Email"
-                required
-              />
-              <textarea
-                className="rounded px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-primary1"
-                placeholder="Message"
-                rows={2}
-                required
-              ></textarea>
-              <button
-                type="submit"
-                className="bg-primary1 text-white rounded px-4 py-2 mt-2 hover:bg-accent transition"
-              >
-                Send Message
-              </button>
-            </form>
+              Send us a Message
+            </Link>
           </div>
         </div>
       </div>

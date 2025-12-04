@@ -13,6 +13,7 @@ import Club from './pages/Club.jsx';
 import ClubDetail from './pages/ClubDetail.jsx';
 import Profile from './pages/Profile.jsx';
 import MyBooks from './pages/MyBooks.jsx';
+import Contact from './pages/Contact.jsx';
 
 import './index.css';
 import "slick-carousel/slick/slick.css";
@@ -59,6 +60,10 @@ const router = createBrowserRouter([
       {
         path: "my-books",
         element: <MyBooks />,
+      },
+      {
+        path: "contact",
+        element: <Contact />,
       },
     ],
   },

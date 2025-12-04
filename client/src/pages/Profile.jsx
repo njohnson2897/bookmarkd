@@ -15,7 +15,7 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const { profileId } = useParams();
   const navigate = useNavigate();
-  
+
   const [updateUser, { error: updateError }] = useMutation(UPDATE_USER);
   const token = Auth.getProfile();
   const isOwnProfile = token?.data?._id === profileId;
@@ -74,14 +74,17 @@ const Profile = () => {
     );
   }
 
-  const hasProfileInfo = user.bio || user.location || user.favBook || user.favAuthor;
+  const hasProfileInfo =
+    user.bio || user.location || user.favBook || user.favAuthor;
 
   // Show edit form if it's the user's own profile and they haven't filled it out, or if they're editing
   if (isOwnProfile && (!hasProfileInfo || isEditing)) {
     return (
-      <div className="max-w-xl mx-auto bg-white rounded-lg shadow p-8 mt-10">
+      <div className="max-w-xl mx-auto bg-white rounded-lg shadow p-8 mt-10 mb-10">
         <h3 className="text-2xl font-bold text-primary2 mb-6 text-center">
-          {isEditing ? "Edit Your Profile" : "Please Provide Some Additional Information"}
+          {isEditing
+            ? "Edit Your Profile"
+            : "Please Provide Some Additional Information"}
         </h3>
         {updateError && (
           <div className="text-red-500 text-sm mb-4">
@@ -165,7 +168,7 @@ const Profile = () => {
 
   // Show profile view
   return (
-    <div className="max-w-2xl mx-auto bg-white rounded-lg shadow p-8 mt-10">
+    <div className="max-w-2xl mx-auto bg-white rounded-lg shadow p-8 mt-10 mb-10">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-primary2">
           {user.username}'s Profile
@@ -200,12 +203,16 @@ const Profile = () => {
         )}
         {user.favAuthor && (
           <div>
-            <h4 className="font-semibold text-primary2 mb-1">Favorite Author:</h4>
+            <h4 className="font-semibold text-primary2 mb-1">
+              Favorite Author:
+            </h4>
             <p className="text-gray-700">{user.favAuthor}</p>
           </div>
         )}
         <div>
-          <h4 className="font-semibold text-primary2 mb-1">Books in Collection:</h4>
+          <h4 className="font-semibold text-primary2 mb-1">
+            Books in Collection:
+          </h4>
           {user.books && user.books.length > 0 ? (
             <ul className="list-disc list-inside text-gray-700">
               {user.books.map((bookStatus, index) => (
@@ -250,5 +257,3 @@ const Profile = () => {
 };
 
 export default Profile;
-
-

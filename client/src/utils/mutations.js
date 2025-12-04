@@ -207,4 +207,16 @@ export const UPDATE_USER = gql`
   }
 `;
 
+export const SUBMIT_CONTACT = gql`
+  mutation SubmitContact($name: String!, $email: String!, $message: String!) {
+    submitContact(name: $name, email: $email, message: $message) {
+      _id
+      name
+      email
+      message
+      createdAt
+    }
+  }
+`;
+
 

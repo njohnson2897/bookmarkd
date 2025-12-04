@@ -75,8 +75,7 @@ function Navbar() {
                 <li>
                   <Link
                     className="hover:text-primary1 transition"
-                    to={currentPage}
-                    onClick={scrollToBottom}
+                    to="/contact"
                   >
                     Contact Us
                   </Link>
@@ -123,8 +122,7 @@ function Navbar() {
                 <li>
                   <Link
                     className="hover:text-primary1 transition"
-                    to={currentPage}
-                    onClick={scrollToBottom}
+                    to="/contact"
                   >
                     Contact Us
                   </Link>

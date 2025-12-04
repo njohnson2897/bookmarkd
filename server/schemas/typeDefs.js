@@ -45,6 +45,14 @@ const typeDefs = `
     members: [User]
   }
 
+  type Contact {
+    _id: ID!
+    name: String!
+    email: String!
+    message: String!
+    createdAt: String!
+  }
+
   type Query {
     users: [User!]
     user(id: ID!): User
@@ -72,6 +80,7 @@ const typeDefs = `
     editUserBookStatus(bookId: ID!, userId: ID!, status: String!): User
     editUserBookFavorite(bookId: ID!, userId: ID!, favorite: Boolean!): User
     login(email: String!, password: String!): Auth
+    submitContact(name: String!, email: String!, message: String!): Contact
   }
 `;
 

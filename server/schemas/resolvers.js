@@ -1,4 +1,4 @@
-import { User, Book, Club, Review } from '../models/index.js';
+import { User, Book, Club, Review, Contact } from '../models/index.js';
 import { AuthenticationError, AuthorizationError, signToken, requireAuth, requireAuthAndMatch, requireAuthAndMatchOptional } from '../utils/auth.js';
 
 const resolvers = {
@@ -361,6 +361,11 @@ const resolvers = {
         updateData,
         { new: true }
       ).populate(['books.book', 'reviews', 'clubs']);
+    },
+    submitContact: async (parent, { name, email, message }) => {
+      // Contact form submissions don't require authentication
+      const contact = await Contact.create({ name, email, message });
+      return contact;
     },
   }
 };
