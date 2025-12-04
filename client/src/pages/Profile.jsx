@@ -1,7 +1,7 @@
 import { useQuery, useMutation } from "@apollo/client";
 import { useParams, useNavigate } from "react-router-dom";
 import { QUERY_USER } from "../utils/queries.js";
-import { UPDATE_USER } from "../utils/mutations.js";
+import { UPDATE_USER, DELETE_REVIEW } from "../utils/mutations.js";
 import Auth from "../utils/auth.js";
 import { useState } from "react";
 
@@ -17,6 +17,7 @@ const Profile = () => {
   const navigate = useNavigate();
 
   const [updateUser, { error: updateError }] = useMutation(UPDATE_USER);
+  const [deleteReview] = useMutation(DELETE_REVIEW);
   const token = Auth.getProfile();
   const isOwnProfile = token?.data?._id === profileId;
 
@@ -228,13 +229,54 @@ const Profile = () => {
         <div>
           <h4 className="font-semibold text-primary2 mb-1">Reviews:</h4>
           {user.reviews && user.reviews.length > 0 ? (
-            <ul className="list-disc list-inside text-gray-700">
+            <div className="space-y-2">
               {user.reviews.map((review) => (
-                <li key={review._id}>
-                  {review.title || "Untitled Review"} - {review.stars} stars
-                </li>
+                <div
+                  key={review._id}
+                  className="flex items-center justify-between bg-gray-50 p-2 rounded"
+                >
+                  <div>
+                    <span className="text-gray-700">
+                      {review.title || "Untitled Review"} - {review.stars} stars
+                    </span>
+                    {review.book?.google_id && (
+                      <button
+                        onClick={() =>
+                          navigate(`/books/${review.book.google_id}`)
+                        }
+                        className="ml-2 text-primary1 hover:text-primary2 text-sm"
+                      >
+                        View Book
+                      </button>
+                    )}
+                  </div>
+                  {isOwnProfile && (
+                    <button
+                      onClick={async () => {
+                        if (
+                          window.confirm(
+                            "Are you sure you want to delete this review?"
+                          )
+                        ) {
+                          try {
+                            await deleteReview({
+                              variables: { reviewId: review._id },
+                            });
+                            await refetch();
+                          } catch (error) {
+                            console.error("Error deleting review:", error);
+                            alert("Error deleting review. Please try again.");
+                          }
+                        }
+                      }}
+                      className="text-red-500 hover:text-red-700 text-sm font-semibold ml-2"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
               ))}
-            </ul>
+            </div>
           ) : (
             <p className="text-gray-500">No reviews yet.</p>
           )}

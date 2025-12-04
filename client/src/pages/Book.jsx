@@ -6,6 +6,8 @@ import {
   ADD_BOOK_STATUS,
   ADD_BOOK,
   ADD_REVIEW,
+  UPDATE_REVIEW,
+  DELETE_REVIEW,
   EDIT_USER_BOOK_STATUS,
   EDIT_USER_BOOK_FAVORITE,
 } from "../utils/mutations.js";
@@ -20,6 +22,7 @@ const Book = () => {
   });
   const [bookSaved, setBookSaved] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [editingReviewId, setEditingReviewId] = useState(null);
   const [reviewForm, setReviewForm] = useState({
     stars: 5,
     title: "",
@@ -44,6 +47,8 @@ const Book = () => {
   const [addBook] = useMutation(ADD_BOOK);
   const [addBookStatusMutation] = useMutation(ADD_BOOK_STATUS);
   const [addReview, { error: reviewError }] = useMutation(ADD_REVIEW);
+  const [updateReview] = useMutation(UPDATE_REVIEW);
+  const [deleteReview] = useMutation(DELETE_REVIEW);
   const [editBookStatus] = useMutation(EDIT_USER_BOOK_STATUS);
   const [editBookFavorite] = useMutation(EDIT_USER_BOOK_FAVORITE);
 
@@ -229,6 +234,63 @@ const Book = () => {
     }
   };
 
+  const handleEditReview = (review) => {
+    setEditingReviewId(review._id);
+    setReviewForm({
+      stars: review.stars,
+      title: review.title || "",
+      description: review.description || "",
+    });
+    setShowReviewForm(true);
+  };
+
+  const handleUpdateReview = async (e) => {
+    e.preventDefault();
+    if (!Auth.loggedIn()) {
+      navigate("/");
+      return;
+    }
+
+    try {
+      await updateReview({
+        variables: {
+          reviewId: editingReviewId,
+          stars: reviewForm.stars,
+          title: reviewForm.title || null,
+          description: reviewForm.description || null,
+        },
+      });
+
+      // Reset form and hide it
+      setReviewForm({ stars: 5, title: "", description: "" });
+      setHoveredStar(0);
+      setEditingReviewId(null);
+      setShowReviewForm(false);
+
+      // Refetch book data to show the updated review
+      await refetch();
+    } catch (error) {
+      console.error("Error updating review:", error);
+      alert("Error updating review. Please try again.");
+    }
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm("Are you sure you want to delete this review?")) {
+      return;
+    }
+
+    try {
+      await deleteReview({
+        variables: { reviewId },
+      });
+      await refetch();
+    } catch (error) {
+      console.error("Error deleting review:", error);
+      alert("Error deleting review. Please try again.");
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto py-10 px-4">
       <div className="bg-white rounded-lg shadow p-8 flex flex-col md:flex-row gap-8">
@@ -346,7 +408,7 @@ const Book = () => {
           {/* Review Form Section */}
           {Auth.loggedIn() && !loading && data?.bookGoogle && (
             <div className="mt-8">
-              {hasUserReviewed() ? (
+              {hasUserReviewed() && !editingReviewId ? (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <p className="text-blue-800">
                     You have already reviewed this book.
@@ -356,22 +418,26 @@ const Book = () => {
                 <>
                   {!showReviewForm ? (
                     <button
-                      onClick={() => setShowReviewForm(true)}
+                      onClick={() => {
+                        setShowReviewForm(true);
+                        setEditingReviewId(null);
+                        setReviewForm({ stars: 5, title: "", description: "" });
+                      }}
                       className="bg-primary2 text-white px-6 py-2 rounded hover:bg-primary1 transition"
                     >
-                      Write a Review
+                      {editingReviewId ? "Edit Review" : "Write a Review"}
                     </button>
                   ) : (
                     <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
                       <h4 className="text-xl font-bold text-primary2 mb-4">
-                        Write a Review
+                        {editingReviewId ? "Edit Your Review" : "Write a Review"}
                       </h4>
                       {reviewError && (
                         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                           {reviewError.message || "Error submitting review"}
                         </div>
                       )}
-                      <form onSubmit={handleReviewSubmit} className="space-y-4">
+                      <form onSubmit={editingReviewId ? handleUpdateReview : handleReviewSubmit} className="space-y-4">
                         <div>
                           <label className="block font-semibold text-primary2 mb-2">
                             Rating
@@ -447,12 +513,13 @@ const Book = () => {
                             type="submit"
                             className="bg-primary1 text-white px-6 py-2 rounded hover:bg-accent transition"
                           >
-                            Submit Review
+                            {editingReviewId ? "Update Review" : "Submit Review"}
                           </button>
                           <button
                             type="button"
                             onClick={() => {
                               setShowReviewForm(false);
+                              setEditingReviewId(null);
                               setReviewForm({
                                 stars: 5,
                                 title: "",
@@ -478,30 +545,51 @@ const Book = () => {
             <div className="mt-8">
               <h4 className="text-xl font-bold text-primary2 mb-4">Reviews</h4>
               <div className="space-y-4">
-                {data.bookGoogle.reviews.map((review) => (
-                  <div
-                    key={review._id}
-                    className="border-l-4 border-primary1 pl-4 py-2"
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="font-semibold">
-                        {review.user?.username || "Anonymous"}
-                      </span>
-                      <span className="text-yellow-400">
-                        {"★".repeat(Math.round(review.stars))}
-                        {"☆".repeat(5 - Math.round(review.stars))}
-                      </span>
+                {data.bookGoogle.reviews.map((review) => {
+                  const isOwnReview = review.user?._id === userId;
+                  return (
+                    <div
+                      key={review._id}
+                      className="border-l-4 border-primary1 pl-4 py-2"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold">
+                            {review.user?.username || "Anonymous"}
+                          </span>
+                          <span className="text-yellow-400">
+                            {"★".repeat(Math.round(review.stars))}
+                            {"☆".repeat(5 - Math.round(review.stars))}
+                          </span>
+                        </div>
+                        {isOwnReview && (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleEditReview(review)}
+                              className="text-primary1 hover:text-primary2 text-sm font-semibold transition"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteReview(review._id)}
+                              className="text-red-500 hover:text-red-700 text-sm font-semibold transition"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      {review.title && (
+                        <h5 className="font-semibold text-primary2 mb-1">
+                          {review.title}
+                        </h5>
+                      )}
+                      {review.description && (
+                        <p className="text-gray-700">{review.description}</p>
+                      )}
                     </div>
-                    {review.title && (
-                      <h5 className="font-semibold text-primary2 mb-1">
-                        {review.title}
-                      </h5>
-                    )}
-                    {review.description && (
-                      <p className="text-gray-700">{review.description}</p>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

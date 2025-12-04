@@ -74,6 +74,7 @@ const typeDefs = `
     addClub(name: String!, owner: ID!): Club
     addClubMember(clubId: ID!, userId: ID!): Club
     removeClubMember(clubId: ID!, userId: ID!): Club
+    updateReview(reviewId: ID!, stars: Float, title: String, description: String): Review
     deleteReview(reviewId: ID!): Review
     deleteClub(clubId: ID!): Club
     removeUserBook(bookId: ID!, userId: ID!): User

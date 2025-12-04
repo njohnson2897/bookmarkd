@@ -1,12 +1,17 @@
-import { useQuery } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import { QUERY_REVIEWS } from "../utils/queries.js";
+import { UPDATE_REVIEW, DELETE_REVIEW } from "../utils/mutations.js";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Auth from "../utils/auth.js";
 
 const ReviewsPage = () => {
-  const { loading, data, error } = useQuery(QUERY_REVIEWS);
+  const { loading, data, error, refetch } = useQuery(QUERY_REVIEWS);
   const [reviews, setReviews] = useState([]);
   const navigate = useNavigate();
+  const userId = Auth.loggedIn() ? Auth.getProfile()?.data?._id : null;
+  const [updateReview] = useMutation(UPDATE_REVIEW);
+  const [deleteReview] = useMutation(DELETE_REVIEW);
 
   useEffect(() => {
     const fetchBookDetails = async () => {
@@ -49,6 +54,22 @@ const ReviewsPage = () => {
       fetchBookDetails();
     }
   }, [data]);
+
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm("Are you sure you want to delete this review?")) {
+      return;
+    }
+
+    try {
+      await deleteReview({
+        variables: { reviewId },
+      });
+      await refetch();
+    } catch (error) {
+      console.error("Error deleting review:", error);
+      alert("Error deleting review. Please try again.");
+    }
+  };
 
   if (loading) {
     return (
@@ -141,6 +162,14 @@ const ReviewsPage = () => {
               >
                 View Book
               </button>
+              {review.user?._id === userId && (
+                <button
+                  onClick={() => handleDeleteReview(review._id)}
+                  className="bg-red-100 text-red-700 px-4 py-1 rounded hover:bg-red-200 transition"
+                >
+                  Delete
+                </button>
+              )}
             </div>
           </div>
         ))}

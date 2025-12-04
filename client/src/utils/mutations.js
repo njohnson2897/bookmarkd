@@ -84,6 +84,25 @@ export const ADD_CLUB = gql`
   }
 `;
 
+export const UPDATE_REVIEW = gql`
+  mutation UpdateReview($reviewId: ID!, $stars: Float, $title: String, $description: String) {
+    updateReview(reviewId: $reviewId, stars: $stars, title: $title, description: $description) {
+      _id
+      book {
+        _id
+        google_id
+      }
+      user {
+        _id
+        username
+      }
+      stars
+      title
+      description
+    }
+  }
+`;
+
 export const DELETE_REVIEW = gql`
   mutation DeleteReview($reviewId: ID!) {
     deleteReview(reviewId: $reviewId) {

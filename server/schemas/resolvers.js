@@ -264,7 +264,7 @@ const resolvers = {
       
       return Club.findById(clubId).populate(['owner', 'members']);
     },
-    deleteReview: async (parent, { reviewId }, context) => {
+    updateReview: async (parent, { reviewId, stars, title, description }, context) => {
       // User must be authenticated
       requireAuth(context);
       
@@ -273,20 +273,65 @@ const resolvers = {
         throw new Error('Review not found');
       }
       
+      // Only the review owner can update their review
+      requireAuthAndMatch(context, reviewData.user);
+      
+      const updateData = {};
+      if (stars !== undefined && stars !== null) updateData.stars = stars;
+      if (title !== undefined) updateData.title = title;
+      if (description !== undefined) updateData.description = description;
+      
+      const updatedReview = await Review.findOneAndUpdate(
+        { _id: reviewId },
+        updateData,
+        { new: true }
+      ).populate(['book', 'user']);
+      
+      return updatedReview;
+    },
+    deleteReview: async (parent, { reviewId }, context) => {
+      // User must be authenticated
+      requireAuth(context);
+      
+      const reviewData = await Review.findOne({ _id: reviewId }).populate('book');
+      if (!reviewData) {
+        throw new Error('Review not found');
+      }
+      
       // Only the review owner can delete their review
       requireAuthAndMatch(context, reviewData.user);
       
+      // Get book ID (handle both populated and ObjectId cases)
+      const bookId = reviewData.book?._id || reviewData.book;
+      const bookGoogleId = reviewData.book?.google_id || null;
+      
+      // Store the review data before deletion for return
+      const reviewToReturn = {
+        _id: reviewData._id,
+        book: {
+          _id: bookId,
+          google_id: bookGoogleId,
+        },
+      };
+      
+      // Remove review from book
       await Book.findOneAndUpdate(
-        { _id: reviewData.book },
+        { _id: bookId },
         { $pull: { reviews: reviewId } },
         { new: true }
       );
+      
+      // Remove review from user
       await User.findOneAndUpdate(
         { _id: reviewData.user },
         { $pull: { reviews: reviewId } },
         { new: true }
       );
-      return Review.findOneAndDelete({ _id: reviewId });
+      
+      // Delete the review
+      await Review.findOneAndDelete({ _id: reviewId });
+      
+      return reviewToReturn;
     },
     deleteClub: async (parent, { clubId }, context) => {
       // User must be authenticated
