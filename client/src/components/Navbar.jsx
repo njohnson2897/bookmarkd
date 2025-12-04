@@ -32,7 +32,11 @@ function Navbar() {
     <header className="bg-primary2 text-white shadow-md sticky top-0 z-50">
       <nav className="container mx-auto flex items-center justify-between py-3 px-4">
         <Link className="flex items-center gap-2 text-2xl font-bold" to="/">
-          <img src="/images/logo.png" alt="Bookmarkd Logo" className="h-10 w-10" />
+          <img
+            src="/images/logo.png"
+            alt="Bookmarkd Logo"
+            className="h-10 w-10"
+          />
           <span>Bookmarkd</span>
         </Link>
         <button
@@ -98,12 +102,18 @@ function Navbar() {
                   </Link>
                 </li>
                 <li>
-                  <Link className="hover:text-primary1 transition" to="/my-books">
+                  <Link
+                    className="hover:text-primary1 transition"
+                    to="/my-books"
+                  >
                     My Books
                   </Link>
                 </li>
                 <li>
-                  <Link className="hover:text-primary1 transition" to="/activity">
+                  <Link
+                    className="hover:text-primary1 transition"
+                    to="/activity"
+                  >
                     Activity
                   </Link>
                 </li>
@@ -172,5 +182,3 @@ function Navbar() {
 }
 
 export default Navbar;
-
-
