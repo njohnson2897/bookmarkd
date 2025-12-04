@@ -213,4 +213,37 @@ export const QUERY_ACTIVITY_FEED = gql`
   }
 `;
 
+export const QUERY_NOTIFICATIONS = gql`
+  query Notifications($userId: ID!) {
+    notifications(userId: $userId) {
+      _id
+      type
+      read
+      fromUser {
+        _id
+        username
+      }
+      review {
+        _id
+        title
+        book {
+          _id
+          google_id
+        }
+      }
+      comment {
+        _id
+        text
+      }
+      createdAt
+    }
+  }
+`;
+
+export const QUERY_UNREAD_NOTIFICATION_COUNT = gql`
+  query UnreadNotificationCount($userId: ID!) {
+    unreadNotificationCount(userId: $userId)
+  }
+`;
+
 

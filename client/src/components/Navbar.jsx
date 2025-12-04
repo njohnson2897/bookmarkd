@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import Auth from "../utils/auth.js";
 import { useState } from "react";
+import NotificationBell from "./NotificationBell.jsx";
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -63,6 +64,9 @@ function Navbar() {
           <ul className="flex flex-col md:flex-row md:gap-6 gap-2 md:items-center text-lg font-medium">
             {isLoggedIn ? (
               <>
+                <li className="flex items-center">
+                  <NotificationBell />
+                </li>
                 <li>
                   <Link
                     className="hover:text-primary1 transition"

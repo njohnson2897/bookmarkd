@@ -89,6 +89,17 @@ const typeDefs = `
     createdAt: String!
   }
 
+  type Notification {
+    _id: ID!
+    user: User!
+    type: String!
+    fromUser: User!
+    review: Review
+    comment: Comment
+    read: Boolean!
+    createdAt: String!
+  }
+
   type Query {
     users: [User!]
     user(id: ID!): User
@@ -100,6 +111,8 @@ const typeDefs = `
     clubs: [Club!]
     club(id: ID!): Club
     activityFeed(userId: ID!): [Activity]
+    notifications(userId: ID!): [Notification]
+    unreadNotificationCount(userId: ID!): Int
   }
 
   type Mutation {
@@ -125,6 +138,9 @@ const typeDefs = `
     deleteComment(commentId: ID!): Comment
     followUser(followerId: ID!, followingId: ID!): User
     unfollowUser(followerId: ID!, followingId: ID!): User
+    markNotificationAsRead(notificationId: ID!): Notification
+    markAllNotificationsAsRead(userId: ID!): Boolean
+    deleteNotification(notificationId: ID!): Notification
   }
 `;
 

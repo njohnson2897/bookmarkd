@@ -300,4 +300,27 @@ export const UNFOLLOW_USER = gql`
   }
 `;
 
+export const MARK_NOTIFICATION_AS_READ = gql`
+  mutation MarkNotificationAsRead($notificationId: ID!) {
+    markNotificationAsRead(notificationId: $notificationId) {
+      _id
+      read
+    }
+  }
+`;
+
+export const MARK_ALL_NOTIFICATIONS_AS_READ = gql`
+  mutation MarkAllNotificationsAsRead($userId: ID!) {
+    markAllNotificationsAsRead(userId: $userId)
+  }
+`;
+
+export const DELETE_NOTIFICATION = gql`
+  mutation DeleteNotification($notificationId: ID!) {
+    deleteNotification(notificationId: $notificationId) {
+      _id
+    }
+  }
+`;
+
 

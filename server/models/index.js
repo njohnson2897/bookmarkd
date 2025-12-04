@@ -6,7 +6,8 @@ import Contact from './Contact.js';
 import Like from './Like.js';
 import Comment from './Comment.js';
 import Follow from './Follow.js';
+import Notification from './Notification.js';
 
-export { User, Book, Review, Club, Contact, Like, Comment, Follow };
+export { User, Book, Review, Club, Contact, Like, Comment, Follow, Notification };
 
 

@@ -1,4 +1,4 @@
-import { User, Book, Club, Review, Contact, Like, Comment, Follow } from '../models/index.js';
+import { User, Book, Club, Review, Contact, Like, Comment, Follow, Notification } from '../models/index.js';
 import { AuthenticationError, AuthorizationError, signToken, requireAuth, requireAuthAndMatch, requireAuthAndMatchOptional } from '../utils/auth.js';
 
 const resolvers = {
@@ -177,6 +177,37 @@ const resolvers = {
       activities.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       
       return activities.slice(0, 30); // Return top 30 most recent
+    },
+    notifications: async (parent, { userId }, context) => {
+      // User must be authenticated and can only see their own notifications
+      requireAuth(context);
+      if (context.user._id.toString() !== userId.toString()) {
+        throw AuthorizationError;
+      }
+      
+      const notifications = await Notification.find({ user: userId })
+        .populate('fromUser', '_id username')
+        .populate({
+          path: 'review',
+          populate: {
+            path: 'book',
+            select: '_id google_id'
+          }
+        })
+        .populate('comment')
+        .sort({ createdAt: -1 })
+        .limit(50);
+      
+      return notifications;
+    },
+    unreadNotificationCount: async (parent, { userId }, context) => {
+      // User must be authenticated and can only see their own notification count
+      requireAuth(context);
+      if (context.user._id.toString() !== userId.toString()) {
+        throw AuthorizationError;
+      }
+      
+      return Notification.countDocuments({ user: userId, read: false });
     },
   },
 
@@ -483,6 +514,17 @@ const resolvers = {
       // Create the like
       await Like.create({ user: userId, review: reviewId });
       
+      // Create notification for review owner (if not liking own review)
+      const review = await Review.findById(reviewId).populate('user');
+      if (review && review.user._id.toString() !== userId.toString()) {
+        await Notification.create({
+          user: review.user._id,
+          type: 'like',
+          fromUser: userId,
+          review: reviewId,
+        });
+      }
+      
       return Review.findById(reviewId).populate(['book', 'user']);
     },
     unlikeReview: async (parent, { reviewId, userId }, context) => {
@@ -499,6 +541,19 @@ const resolvers = {
       requireAuthAndMatch(context, userId);
       
       const comment = await Comment.create({ user: userId, review: reviewId, text });
+      
+      // Create notification for review owner (if not commenting on own review)
+      const review = await Review.findById(reviewId).populate('user');
+      if (review && review.user._id.toString() !== userId.toString()) {
+        await Notification.create({
+          user: review.user._id,
+          type: 'comment',
+          fromUser: userId,
+          review: reviewId,
+          comment: comment._id,
+        });
+      }
+      
       return Comment.findById(comment._id).populate(['user', 'review']);
     },
     deleteComment: async (parent, { commentId }, context) => {
@@ -533,6 +588,13 @@ const resolvers = {
       // Create the follow relationship
       await Follow.create({ follower: followerId, following: followingId });
       
+      // Create notification for the user being followed
+      await Notification.create({
+        user: followingId,
+        type: 'follow',
+        fromUser: followerId,
+      });
+      
       return User.findById(followingId).populate(['books.book', 'reviews', 'clubs']);
     },
     unfollowUser: async (parent, { followerId, followingId }, context) => {
@@ -543,6 +605,53 @@ const resolvers = {
       await Follow.findOneAndDelete({ follower: followerId, following: followingId });
       
       return User.findById(followingId).populate(['books.book', 'reviews', 'clubs']);
+    },
+    markNotificationAsRead: async (parent, { notificationId }, context) => {
+      // User must be authenticated
+      requireAuth(context);
+      
+      const notification = await Notification.findById(notificationId);
+      if (!notification) {
+        throw new Error('Notification not found');
+      }
+      
+      // Only the notification owner can mark it as read
+      if (context.user._id.toString() !== notification.user.toString()) {
+        throw AuthorizationError;
+      }
+      
+      return Notification.findByIdAndUpdate(
+        notificationId,
+        { read: true },
+        { new: true }
+      ).populate('fromUser', '_id username');
+    },
+    markAllNotificationsAsRead: async (parent, { userId }, context) => {
+      // User must be authenticated and can only mark their own notifications as read
+      requireAuthAndMatch(context, userId);
+      
+      await Notification.updateMany(
+        { user: userId, read: false },
+        { read: true }
+      );
+      
+      return true;
+    },
+    deleteNotification: async (parent, { notificationId }, context) => {
+      // User must be authenticated
+      requireAuth(context);
+      
+      const notification = await Notification.findById(notificationId);
+      if (!notification) {
+        throw new Error('Notification not found');
+      }
+      
+      // Only the notification owner can delete it
+      if (context.user._id.toString() !== notification.user.toString()) {
+        throw AuthorizationError;
+      }
+      
+      return Notification.findOneAndDelete({ _id: notificationId });
     },
   },
   
@@ -610,6 +719,13 @@ const resolvers = {
   
   // Field resolver for Like
   Like: {
+    createdAt: (parent) => {
+      return parent.createdAt ? parent.createdAt.toISOString() : null;
+    },
+  },
+  
+  // Field resolver for Notification
+  Notification: {
     createdAt: (parent) => {
       return parent.createdAt ? parent.createdAt.toISOString() : null;
     },
