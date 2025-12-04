@@ -111,27 +111,42 @@ const ClubDetail = () => {
     );
   }
 
+  const totalMembers = (club.members?.length || 0) + 1; // +1 for owner
+
   return (
-    <div className="max-w-4xl mx-auto py-10 px-4">
-      <div className="bg-white rounded-lg shadow p-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-primary2 to-primary1 rounded-t-lg p-8 text-white mb-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-primary2 mb-2">
-              {club.name}
-            </h1>
-            <p className="text-gray-600">
-              Owner:{" "}
-              <span className="font-semibold text-primary1">
-                {club.owner?.username || "Unknown"}
-              </span>
-            </p>
+            <h1 className="text-4xl font-bold mb-2">{club.name}</h1>
+            <div className="flex items-center gap-4 text-white/90">
+              <div className="flex items-center gap-2">
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                </svg>
+                <span className="font-semibold">{totalMembers} {totalMembers === 1 ? "member" : "members"}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span>Owner:</span>
+                <button
+                  onClick={() => navigate(`/profile/${club.owner?._id}`)}
+                  className="font-semibold hover:underline"
+                >
+                  {club.owner?.username || "Unknown"}
+                </button>
+              </div>
+            </div>
           </div>
           <div className="flex gap-2">
             {canJoin && (
               <button
                 onClick={handleJoinClub}
-                className="bg-primary1 text-white px-6 py-2 rounded hover:bg-accent transition"
+                className="bg-white text-primary2 px-6 py-3 rounded-lg hover:bg-gray-100 transition font-semibold"
               >
                 Join Club
               </button>
@@ -139,7 +154,7 @@ const ClubDetail = () => {
             {isMember && !isOwner && (
               <button
                 onClick={handleLeaveClub}
-                className="bg-red-100 text-red-700 px-6 py-2 rounded hover:bg-red-200 transition"
+                className="bg-white/20 text-white px-6 py-3 rounded-lg hover:bg-white/30 transition font-semibold"
               >
                 Leave Club
               </button>
@@ -147,44 +162,115 @@ const ClubDetail = () => {
             {isOwner && (
               <button
                 onClick={handleDeleteClub}
-                className="bg-red-100 text-red-700 px-6 py-2 rounded hover:bg-red-200 transition"
+                className="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition font-semibold"
               >
                 Delete Club
               </button>
             )}
           </div>
         </div>
+      </div>
 
-        {/* Members Section */}
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold text-primary2 mb-4">
-            Members ({club.members?.length || 0})
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white rounded-lg shadow p-6 text-center">
+          <div className="text-3xl font-bold text-primary2">{totalMembers}</div>
+          <div className="text-sm text-gray-600 mt-1">Total Members</div>
+        </div>
+        <div className="bg-white rounded-lg shadow p-6 text-center">
+          <div className="text-3xl font-bold text-primary2">{club.members?.length || 0}</div>
+          <div className="text-sm text-gray-600 mt-1">Active Members</div>
+        </div>
+        <div className="bg-white rounded-lg shadow p-6 text-center">
+          <div className="text-3xl font-bold text-primary2">
+            {isOwner ? "Owner" : isMember ? "Member" : "Visitor"}
+          </div>
+          <div className="text-sm text-gray-600 mt-1">Your Status</div>
+        </div>
+      </div>
+
+      {/* Members Section */}
+      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-primary2">
+            Club Members
           </h2>
+        </div>
+
+        {/* Owner Card */}
+        <div className="mb-6 pb-6 border-b-2 border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide">
+            Owner
+          </h3>
+          <div
+            className="bg-gradient-to-r from-primary1/10 to-primary2/10 rounded-lg p-4 border-2 border-primary1/20 hover:border-primary1/40 transition cursor-pointer"
+            onClick={() => navigate(`/profile/${club.owner?._id}`)}
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-primary1 text-white flex items-center justify-center text-lg font-bold">
+                {club.owner?.username?.charAt(0).toUpperCase() || "?"}
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-primary2 text-lg">
+                  {club.owner?.username || "Unknown"}
+                </p>
+                <p className="text-sm text-gray-600">Club Owner</p>
+              </div>
+              <span className="bg-primary1 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                Owner
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Members List */}
+        <div>
+          <h3 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide">
+            Members ({club.members?.length || 0})
+          </h3>
           {club.members && club.members.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {club.members.map((member) => (
                 <div
                   key={member._id}
-                  className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-primary1 transition cursor-pointer"
+                  className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-primary1 hover:shadow-md transition cursor-pointer"
                   onClick={() => navigate(`/profile/${member._id}`)}
                 >
-                  <p className="font-semibold text-primary2">
-                    {member.username}
-                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary2 text-white flex items-center justify-center font-semibold">
+                      {member.username?.charAt(0).toUpperCase() || "?"}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-primary2">
+                        {member.username}
+                      </p>
+                      <p className="text-xs text-gray-600">Member</p>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-600">No members yet. Be the first to join!</p>
+            <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+              <svg
+                className="mx-auto h-12 w-12 text-gray-400 mb-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1}
+                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                />
+              </svg>
+              <p className="text-gray-600 font-medium">No members yet</p>
+              <p className="text-sm text-gray-500 mt-1">
+                Be the first to join this club!
+              </p>
+            </div>
           )}
-        </div>
-
-        {/* Owner is automatically included in member count but shown separately */}
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <p className="text-sm text-gray-600">
-            <span className="font-semibold">Note:</span> The owner is automatically
-            part of the club but is not listed as a member.
-          </p>
         </div>
       </div>
     </div>
