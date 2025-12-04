@@ -22,6 +22,13 @@ const app = express();
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  formatError: (err) => {
+    console.error('GraphQL Error:', err);
+    return {
+      message: err.message,
+      extensions: err.extensions,
+    };
+  },
 });
 
 const startApolloServer = async () => {
@@ -45,16 +52,32 @@ const startApolloServer = async () => {
     });
   }
 
+  // Log MongoDB connection status
+  console.log('Waiting for MongoDB connection...');
+  
   db.once('open', () => {
-    app.listen(PORT, () => {
-      console.log(`API server running on port ${PORT}!`);
-      console.log(`Use GraphQL at http://localhost:${PORT}/graphql`);
-    });
+    console.log('MongoDB connection established');
+  });
+
+  db.on('error', (err) => {
+    console.error('Database connection error:', err);
+    console.error('Make sure MongoDB is running on mongodb://127.0.0.1:27017');
+  });
+
+  // Start server regardless of DB connection status
+  // This allows the server to start even if MongoDB isn't running yet
+  app.listen(PORT, () => {
+    console.log(`API server running on port ${PORT}!`);
+    console.log(`Use GraphQL at http://localhost:${PORT}/graphql`);
+    if (db.readyState !== 1) {
+      console.warn('⚠️  Warning: MongoDB is not connected. Some operations may fail.');
+    }
   });
 };
 
 startApolloServer().catch((error) => {
   console.error('Error starting server:', error);
+  process.exit(1);
 });
 
 

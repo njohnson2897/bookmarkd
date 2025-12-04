@@ -34,9 +34,18 @@ const resolvers = {
 
   Mutation: {
     addUser: async (parent, { username, email, password }) => {
-      const user = await User.create({ username, email, password });
-      const token = signToken(user);
-      return { token, user };
+      try {
+        const user = await User.create({ username, email, password });
+        const token = signToken(user);
+        return { token, user };
+      } catch (error) {
+        if (error.code === 11000) {
+          // Duplicate key error
+          const field = Object.keys(error.keyPattern)[0];
+          throw new Error(`${field === 'email' ? 'Email' : 'Username'} already exists`);
+        }
+        throw error;
+      }
     },
     addBook: async (parent, { google_id }) => {
       // Check if book already exists
