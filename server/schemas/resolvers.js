@@ -170,6 +170,57 @@ const resolvers = {
       );
       return Club.findById(club._id).populate(['owner', 'members']);
     },
+    addClubMember: async (parent, { clubId, userId }) => {
+      // Check if user is already a member
+      const club = await Club.findById(clubId);
+      if (!club) {
+        throw new Error('Club not found');
+      }
+      
+      // Don't add if already a member or if they're the owner
+      if (club.members.includes(userId) || club.owner.toString() === userId) {
+        return Club.findById(clubId).populate(['owner', 'members']);
+      }
+      
+      // Add user to club members
+      await Club.findByIdAndUpdate(
+        clubId,
+        { $addToSet: { members: userId } }
+      );
+      
+      // Add club to user's clubs array
+      await User.findByIdAndUpdate(
+        userId,
+        { $addToSet: { clubs: clubId } }
+      );
+      
+      return Club.findById(clubId).populate(['owner', 'members']);
+    },
+    removeClubMember: async (parent, { clubId, userId }) => {
+      const club = await Club.findById(clubId);
+      if (!club) {
+        throw new Error('Club not found');
+      }
+      
+      // Can't remove the owner
+      if (club.owner.toString() === userId) {
+        throw new Error('Cannot remove club owner');
+      }
+      
+      // Remove user from club members
+      await Club.findByIdAndUpdate(
+        clubId,
+        { $pull: { members: userId } }
+      );
+      
+      // Remove club from user's clubs array
+      await User.findByIdAndUpdate(
+        userId,
+        { $pull: { clubs: clubId } }
+      );
+      
+      return Club.findById(clubId).populate(['owner', 'members']);
+    },
     deleteReview: async (parent, { reviewId }) => {
       const reviewData = await Review.findOne({ _id: reviewId });
       if (!reviewData) {

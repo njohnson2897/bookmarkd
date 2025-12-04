@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { QUERY_CLUBS } from "../utils/queries.js";
-import { ADD_CLUB } from "../utils/mutations.js";
+import { ADD_CLUB, ADD_CLUB_MEMBER, REMOVE_CLUB_MEMBER } from "../utils/mutations.js";
 import Auth from "../utils/auth.js";
 import { useNavigate } from "react-router-dom";
 
@@ -10,8 +10,11 @@ export default function Club() {
   const [showForm, setShowForm] = useState(false);
   const { loading, data, refetch } = useQuery(QUERY_CLUBS);
   const [addClub, { error }] = useMutation(ADD_CLUB);
+  const [addClubMember] = useMutation(ADD_CLUB_MEMBER);
+  const [removeClubMember] = useMutation(REMOVE_CLUB_MEMBER);
   const navigate = useNavigate();
   const isLoggedIn = Auth.loggedIn();
+  const userId = isLoggedIn ? Auth.getProfile()?.data?._id : null;
 
   const handleCreateClub = async (e) => {
     e.preventDefault();
@@ -45,6 +48,60 @@ export default function Club() {
   };
 
   const clubs = data?.clubs || [];
+
+  const isMemberOfClub = (club) => {
+    if (!userId || !club.members) return false;
+    return club.members.some((member) => member._id === userId);
+  };
+
+  const isOwnerOfClub = (club) => {
+    if (!userId || !club.owner) return false;
+    return club.owner._id === userId;
+  };
+
+  const handleJoinClub = async (clubId, e) => {
+    e.stopPropagation();
+    if (!userId) {
+      alert("Please sign in to join a club.");
+      navigate("/");
+      return;
+    }
+
+    try {
+      await addClubMember({
+        variables: {
+          clubId,
+          userId,
+        },
+      });
+      await refetch();
+    } catch (error) {
+      console.error("Error joining club:", error);
+      alert("Error joining club. Please try again.");
+    }
+  };
+
+  const handleLeaveClub = async (clubId, e) => {
+    e.stopPropagation();
+    if (!userId) return;
+
+    if (!window.confirm("Are you sure you want to leave this club?")) {
+      return;
+    }
+
+    try {
+      await removeClubMember({
+        variables: {
+          clubId,
+          userId,
+        },
+      });
+      await refetch();
+    } catch (error) {
+      console.error("Error leaving club:", error);
+      alert("Error leaving club. Please try again.");
+    }
+  };
 
   return (
     <section className="bg-gradient-to-r from-primary2 to-primary1 min-h-[60vh] flex flex-col justify-center py-12">
@@ -94,22 +151,62 @@ export default function Club() {
               <div className="text-white">Loading clubs...</div>
             ) : clubs.length > 0 ? (
               <div className="grid gap-6 w-full max-w-2xl">
-                {clubs.map((club) => (
-                  <div
-                    key={club._id}
-                    className="bg-white rounded-lg shadow p-6 flex flex-col gap-2"
-                  >
-                    <h3 className="text-xl font-bold text-primary2">
-                      {club.name}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      Owner: {club.owner?.username || "Unknown"}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Members: {club.members?.length || 0}
-                    </p>
-                  </div>
-                ))}
+                {clubs.map((club) => {
+                  const isMember = isMemberOfClub(club);
+                  const isOwner = isOwnerOfClub(club);
+                  const canJoin = !isMember && !isOwner && isLoggedIn;
+
+                  return (
+                    <div
+                      key={club._id}
+                      className="bg-white rounded-lg shadow p-6 flex flex-col gap-4 hover:shadow-lg transition cursor-pointer"
+                      onClick={() => navigate(`/clubs/${club._id}`)}
+                    >
+                      <div>
+                        <h3 className="text-xl font-bold text-primary2 mb-2">
+                          {club.name}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          Owner:{" "}
+                          <span className="font-semibold">
+                            {club.owner?.username || "Unknown"}
+                          </span>
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Members: {club.members?.length || 0}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        {isOwner && (
+                          <span className="bg-primary1 text-white px-3 py-1 rounded text-sm">
+                            Owner
+                          </span>
+                        )}
+                        {isMember && !isOwner && (
+                          <span className="bg-green-100 text-green-700 px-3 py-1 rounded text-sm">
+                            Member
+                          </span>
+                        )}
+                        {canJoin && (
+                          <button
+                            onClick={(e) => handleJoinClub(club._id, e)}
+                            className="bg-primary1 text-white px-4 py-1 rounded text-sm hover:bg-accent transition"
+                          >
+                            Join
+                          </button>
+                        )}
+                        {isMember && !isOwner && (
+                          <button
+                            onClick={(e) => handleLeaveClub(club._id, e)}
+                            className="bg-red-100 text-red-700 px-4 py-1 rounded text-sm hover:bg-red-200 transition"
+                          >
+                            Leave
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div className="bg-white rounded-lg shadow p-6">

@@ -10,6 +10,7 @@ import Search from './pages/Search.jsx';
 import User from './pages/User.jsx';
 import Error from './pages/Error.jsx';
 import Club from './pages/Club.jsx';
+import ClubDetail from './pages/ClubDetail.jsx';
 import Profile from './pages/Profile.jsx';
 import MyBooks from './pages/MyBooks.jsx';
 
@@ -50,6 +51,10 @@ const router = createBrowserRouter([
       {
         path: "clubs",
         element: <Club />,
+      },
+      {
+        path: "clubs/:clubId",
+        element: <ClubDetail />,
       },
       {
         path: "my-books",

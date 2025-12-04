@@ -109,6 +109,40 @@ export const DELETE_CLUB = gql`
   }
 `;
 
+export const ADD_CLUB_MEMBER = gql`
+  mutation AddClubMember($clubId: ID!, $userId: ID!) {
+    addClubMember(clubId: $clubId, userId: $userId) {
+      _id
+      name
+      owner {
+        _id
+        username
+      }
+      members {
+        _id
+        username
+      }
+    }
+  }
+`;
+
+export const REMOVE_CLUB_MEMBER = gql`
+  mutation RemoveClubMember($clubId: ID!, $userId: ID!) {
+    removeClubMember(clubId: $clubId, userId: $userId) {
+      _id
+      name
+      owner {
+        _id
+        username
+      }
+      members {
+        _id
+        username
+      }
+    }
+  }
+`;
+
 export const REMOVE_USER_BOOK = gql`
   mutation RemoveUserBook($bookId: ID!, $userId: ID!) {
     removeUserBook(bookId: $bookId, userId: $userId) {

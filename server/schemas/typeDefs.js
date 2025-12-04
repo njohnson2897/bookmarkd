@@ -64,6 +64,8 @@ const typeDefs = `
     addBookStatus(book: ID!, user: ID!, status: String!, favorite: Boolean!): User
     addReview(book: ID!, user: ID!, stars: Float!, title: String, description: String): Review
     addClub(name: String!, owner: ID!): Club
+    addClubMember(clubId: ID!, userId: ID!): Club
+    removeClubMember(clubId: ID!, userId: ID!): Club
     deleteReview(reviewId: ID!): Review
     deleteClub(clubId: ID!): Club
     removeUserBook(bookId: ID!, userId: ID!): User

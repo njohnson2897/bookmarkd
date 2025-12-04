@@ -137,4 +137,21 @@ export const QUERY_CLUBS = gql`
   }
 `;
 
+export const QUERY_CLUB = gql`
+  query Club($id: ID!) {
+    club(id: $id) {
+      _id
+      name
+      owner {
+        _id
+        username
+      }
+      members {
+        _id
+        username
+      }
+    }
+  }
+`;
+
 
