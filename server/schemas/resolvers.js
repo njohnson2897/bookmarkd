@@ -1,5 +1,5 @@
 import { User, Book, Club, Review } from '../models/index.js';
-import { AuthenticationError, signToken } from '../utils/auth.js';
+import { AuthenticationError, AuthorizationError, signToken, requireAuth, requireAuthAndMatch, requireAuthAndMatchOptional } from '../utils/auth.js';
 
 const resolvers = {
   Query: {
@@ -13,13 +13,22 @@ const resolvers = {
             select: '_id google_id'
           }
         },
-        'clubs'
+        {
+          path: 'clubs',
+          populate: {
+            path: 'owner',
+            select: '_id username'
+          }
+        }
       ]);
       
-      // Filter out reviews with invalid books for each user
+      // Filter out reviews with invalid books and clubs with invalid owners for each user
       users.forEach(user => {
         if (user.reviews) {
           user.reviews = user.reviews.filter(review => review.book && review.book.google_id);
+        }
+        if (user.clubs) {
+          user.clubs = user.clubs.filter(club => club.owner && club.owner.username);
         }
       });
       
@@ -35,12 +44,23 @@ const resolvers = {
             select: '_id google_id'
           }
         },
-        'clubs'
+        {
+          path: 'clubs',
+          populate: {
+            path: 'owner',
+            select: '_id username'
+          }
+        }
       ]);
       
-      // Filter out reviews with invalid books (books without google_id)
-      if (user && user.reviews) {
-        user.reviews = user.reviews.filter(review => review.book && review.book.google_id);
+      // Filter out reviews with invalid books and clubs with invalid owners
+      if (user) {
+        if (user.reviews) {
+          user.reviews = user.reviews.filter(review => review.book && review.book.google_id);
+        }
+        if (user.clubs) {
+          user.clubs = user.clubs.filter(club => club.owner && club.owner.username);
+        }
       }
       
       return user;
@@ -126,14 +146,20 @@ const resolvers = {
       }
       return Book.create({ google_id });
     },
-    addBookStatus: async (parent, { book, user, status, favorite }) => {
+    addBookStatus: async (parent, { book, user, status, favorite }, context) => {
+      // User must be authenticated and can only add books to their own collection
+      requireAuthAndMatch(context, user);
+      
       return User.findOneAndUpdate(
         { _id: user },
         { $addToSet: { books: { book, status, favorite } } },
         { new: true }
       ).populate('books.book');
     },
-    addReview: async (parent, { book, user, stars, title, description }) => {
+    addReview: async (parent, { book, user, stars, title, description }, context) => {
+      // User must be authenticated and can only add reviews as themselves
+      requireAuthAndMatch(context, user);
+      
       const review = await Review.create({ book, user, stars, title, description });
       await User.findOneAndUpdate(
         { _id: user },
@@ -162,7 +188,10 @@ const resolvers = {
 
       return { token, user };
     },
-    addClub: async (parent, { name, owner }) => {
+    addClub: async (parent, { name, owner }, context) => {
+      // User must be authenticated and can only create clubs as themselves
+      requireAuthAndMatch(context, owner);
+      
       const club = await Club.create({ name, owner });
       await User.findOneAndUpdate(
         { _id: owner },
@@ -170,7 +199,10 @@ const resolvers = {
       );
       return Club.findById(club._id).populate(['owner', 'members']);
     },
-    addClubMember: async (parent, { clubId, userId }) => {
+    addClubMember: async (parent, { clubId, userId }, context) => {
+      // User must be authenticated and can only join clubs as themselves
+      requireAuthAndMatch(context, userId);
+      
       // Check if user is already a member
       const club = await Club.findById(clubId);
       if (!club) {
@@ -196,10 +228,21 @@ const resolvers = {
       
       return Club.findById(clubId).populate(['owner', 'members']);
     },
-    removeClubMember: async (parent, { clubId, userId }) => {
+    removeClubMember: async (parent, { clubId, userId }, context) => {
+      // User must be authenticated
+      requireAuth(context);
+      
       const club = await Club.findById(clubId);
       if (!club) {
         throw new Error('Club not found');
+      }
+      
+      const currentUser = context.user;
+      
+      // User can only remove themselves, OR owner can remove any member
+      if (currentUser._id.toString() !== userId.toString() && 
+          currentUser._id.toString() !== club.owner.toString()) {
+        throw AuthorizationError;
       }
       
       // Can't remove the owner
@@ -221,11 +264,17 @@ const resolvers = {
       
       return Club.findById(clubId).populate(['owner', 'members']);
     },
-    deleteReview: async (parent, { reviewId }) => {
+    deleteReview: async (parent, { reviewId }, context) => {
+      // User must be authenticated
+      requireAuth(context);
+      
       const reviewData = await Review.findOne({ _id: reviewId });
       if (!reviewData) {
         throw new Error('Review not found');
       }
+      
+      // Only the review owner can delete their review
+      requireAuthAndMatch(context, reviewData.user);
       
       await Book.findOneAndUpdate(
         { _id: reviewData.book },
@@ -239,11 +288,17 @@ const resolvers = {
       );
       return Review.findOneAndDelete({ _id: reviewId });
     },
-    deleteClub: async (parent, { clubId }) => {
+    deleteClub: async (parent, { clubId }, context) => {
+      // User must be authenticated
+      requireAuth(context);
+      
       const clubData = await Club.findOne({ _id: clubId });
       if (!clubData) {
         throw new Error('Club not found');
       }
+
+      // Only the club owner can delete the club
+      requireAuthAndMatch(context, clubData.owner);
 
       // Remove club from owner
       await User.findOneAndUpdate(
@@ -261,28 +316,40 @@ const resolvers = {
 
       return Club.findOneAndDelete({ _id: clubId });
     },
-    removeUserBook: async (parent, { bookId, userId }) => {
+    removeUserBook: async (parent, { bookId, userId }, context) => {
+      // User must be authenticated and can only remove books from their own collection
+      requireAuthAndMatch(context, userId);
+      
       return User.findOneAndUpdate(
         { _id: userId },
         { $pull: { books: { book: bookId } } },
         { new: true }
       ).populate('books.book');
     },
-    editUserBookStatus: async (parent, { bookId, userId, status }) => {
+    editUserBookStatus: async (parent, { bookId, userId, status }, context) => {
+      // User must be authenticated and can only edit their own book status
+      requireAuthAndMatch(context, userId);
+      
       return User.findOneAndUpdate(
         { _id: userId, 'books.book': bookId },
         { $set: { 'books.$.status': status } },
         { new: true }
       ).populate('books.book');
     },
-    editUserBookFavorite: async (parent, { bookId, userId, favorite }) => {
+    editUserBookFavorite: async (parent, { bookId, userId, favorite }, context) => {
+      // User must be authenticated and can only edit their own book favorites
+      requireAuthAndMatch(context, userId);
+      
       return User.findOneAndUpdate(
         { _id: userId, 'books.book': bookId },
         { $set: { 'books.$.favorite': favorite } },
         { new: true }
       ).populate('books.book');
     },
-    updateUser: async (parent, { id, bio, location, favBook, favAuthor }) => {
+    updateUser: async (parent, { id, bio, location, favBook, favAuthor }, context) => {
+      // User must be authenticated and can only update their own profile
+      requireAuthAndMatch(context, id);
+      
       const updateData = {};
       if (bio !== undefined) updateData.bio = bio;
       if (location !== undefined) updateData.location = location;
