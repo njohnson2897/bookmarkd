@@ -39,7 +39,7 @@ function App() {
     <ApolloProvider client={client}>
       <div className="min-h-screen flex flex-col">
         <Navbar />
-        <main className="flex-grow bg-gray-50">
+        <main className="flex-grow bg-gradient-to-r from-primary2 to-primary1">
           <Outlet />
         </main>
         <Footer />
@@ -49,4 +49,3 @@ function App() {
 }
 
 export default App;
-

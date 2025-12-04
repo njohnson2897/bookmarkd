@@ -12,5 +12,13 @@ body {
   font-family: 'Poppins', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
 }
+
+html {
+  margin: 0;
+  padding: 0;
+}
+
 

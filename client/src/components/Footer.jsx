@@ -2,12 +2,16 @@ import { Link } from "react-router-dom";
 
 function Footer() {
   return (
-    <footer id="bottom" className="bg-primary2 text-white py-10 mt-10">
+    <footer id="bottom" className="bg-primary2 text-white py-10">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-8">
           <div className="flex flex-col items-center md:items-start gap-2">
             <div className="flex items-center gap-2 mb-2">
-              <img src="/images/logo.png" alt="Bookmarkd Logo" className="h-10 w-10" />
+              <img
+                src="/images/logo.png"
+                alt="Bookmarkd Logo"
+                className="h-10 w-10"
+              />
               <span className="text-2xl font-bold">Bookmarkd</span>
             </div>
             <span className="text-sm">Enjoying the App?</span>
@@ -102,12 +106,14 @@ function Footer() {
           </div>
           <div className="flex flex-col gap-2 items-center md:items-start w-full md:w-1/4">
             <h5 className="font-bold text-lg mb-2">Contact Us</h5>
-            <form 
+            <form
               className="flex flex-col gap-2 w-full"
               onSubmit={(e) => {
                 e.preventDefault();
                 // Contact form functionality can be added here
-                alert('Thank you for your message! We will get back to you soon.');
+                alert(
+                  "Thank you for your message! We will get back to you soon."
+                );
               }}
             >
               <input
@@ -137,4 +143,3 @@ function Footer() {
 }
 
 export default Footer;
-

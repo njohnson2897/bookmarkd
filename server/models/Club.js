@@ -22,3 +22,4 @@ const Club = model('Club', clubSchema);
 
 export default Club;
 
+

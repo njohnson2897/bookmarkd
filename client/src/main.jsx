@@ -13,6 +13,8 @@ import Club from './pages/Club.jsx';
 import Profile from './pages/Profile.jsx';
 
 import './index.css';
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 const router = createBrowserRouter([
   {
@@ -57,4 +59,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <RouterProvider router={router} />
   </React.StrictMode>
 );
+
 

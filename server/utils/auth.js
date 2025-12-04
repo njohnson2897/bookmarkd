@@ -39,3 +39,4 @@ export const signToken = function ({ email, username, _id }) {
   return jwt.sign({ data: payload }, secret, { expiresIn: expiration });
 };
 
+
