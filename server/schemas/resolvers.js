@@ -10,13 +10,48 @@ const resolvers = {
       return User.findOne({ _id: id }).populate(['books.book', 'reviews', 'clubs']);
     },
     books: async () => {
-      return Book.find().populate('reviews');
+      const books = await Book.find().populate({
+        path: 'reviews',
+        populate: {
+          path: 'user',
+          select: 'username _id'
+        }
+      });
+      // Filter out reviews with invalid users
+      books.forEach(book => {
+        if (book.reviews) {
+          book.reviews = book.reviews.filter(review => review.user && review.user.username);
+        }
+      });
+      return books;
     },
     book: async (parent, { id }) => {
-      return Book.findOne({ _id: id }).populate('reviews');
+      const book = await Book.findOne({ _id: id }).populate({
+        path: 'reviews',
+        populate: {
+          path: 'user',
+          select: 'username _id'
+        }
+      });
+      // Filter out reviews with invalid users
+      if (book && book.reviews) {
+        book.reviews = book.reviews.filter(review => review.user && review.user.username);
+      }
+      return book;
     },
     bookGoogle: async (parent, { googleId }) => {
-      return Book.findOne({ google_id: googleId }).populate('reviews');
+      const book = await Book.findOne({ google_id: googleId }).populate({
+        path: 'reviews',
+        populate: {
+          path: 'user',
+          select: 'username _id'
+        }
+      });
+      // Filter out reviews with invalid users
+      if (book && book.reviews) {
+        book.reviews = book.reviews.filter(review => review.user && review.user.username);
+      }
+      return book;
     },
     reviews: async () => {
       return Review.find().populate(['book', 'user']);
