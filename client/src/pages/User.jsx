@@ -3,7 +3,7 @@ import { QUERY_USERS } from "../utils/queries.js";
 import UserCard from "../components/UserCard.jsx";
 
 const User = () => {
-  const { loading, error, data } = useQuery(QUERY_USERS);
+  const { loading, error, data, refetch } = useQuery(QUERY_USERS);
   
   if (loading) {
     return (
@@ -33,7 +33,7 @@ const User = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {users.map((user) => (
-            <UserCard key={user._id} user={user} />
+            <UserCard key={user._id} user={user} refetch={refetch} />
           ))}
         </div>
       )}

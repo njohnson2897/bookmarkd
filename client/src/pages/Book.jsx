@@ -8,6 +8,10 @@ import {
   ADD_REVIEW,
   UPDATE_REVIEW,
   DELETE_REVIEW,
+  LIKE_REVIEW,
+  UNLIKE_REVIEW,
+  ADD_COMMENT,
+  DELETE_COMMENT,
   EDIT_USER_BOOK_STATUS,
   EDIT_USER_BOOK_FAVORITE,
 } from "../utils/mutations.js";
@@ -29,6 +33,8 @@ const Book = () => {
     description: "",
   });
   const [hoveredStar, setHoveredStar] = useState(0);
+  const [expandedComments, setExpandedComments] = useState({});
+  const [commentTexts, setCommentTexts] = useState({});
   const { bookId } = useParams();
   const navigate = useNavigate();
 
@@ -49,6 +55,10 @@ const Book = () => {
   const [addReview, { error: reviewError }] = useMutation(ADD_REVIEW);
   const [updateReview] = useMutation(UPDATE_REVIEW);
   const [deleteReview] = useMutation(DELETE_REVIEW);
+  const [likeReview] = useMutation(LIKE_REVIEW);
+  const [unlikeReview] = useMutation(UNLIKE_REVIEW);
+  const [addComment] = useMutation(ADD_COMMENT);
+  const [deleteComment] = useMutation(DELETE_COMMENT);
   const [editBookStatus] = useMutation(EDIT_USER_BOOK_STATUS);
   const [editBookFavorite] = useMutation(EDIT_USER_BOOK_FAVORITE);
 
@@ -288,6 +298,81 @@ const Book = () => {
     } catch (error) {
       console.error("Error deleting review:", error);
       alert("Error deleting review. Please try again.");
+    }
+  };
+
+  const handleLikeReview = async (reviewId) => {
+    if (!Auth.loggedIn()) {
+      navigate("/");
+      return;
+    }
+
+    const currentUserId = getUserId();
+    if (!currentUserId) return;
+
+    try {
+      const review = data?.bookGoogle?.reviews?.find(r => r._id === reviewId);
+      if (review?.isLiked) {
+        await unlikeReview({
+          variables: { reviewId, userId: currentUserId },
+        });
+      } else {
+        await likeReview({
+          variables: { reviewId, userId: currentUserId },
+        });
+      }
+      await refetch();
+    } catch (error) {
+      console.error("Error liking review:", error);
+      alert("Error liking review. Please try again.");
+    }
+  };
+
+  const handleAddComment = async (reviewId) => {
+    if (!Auth.loggedIn()) {
+      navigate("/");
+      return;
+    }
+
+    const currentUserId = getUserId();
+    if (!currentUserId) return;
+
+    const commentText = commentTexts[reviewId]?.trim();
+    if (!commentText) {
+      alert("Please enter a comment.");
+      return;
+    }
+
+    try {
+      await addComment({
+        variables: {
+          reviewId,
+          userId: currentUserId,
+          text: commentText,
+        },
+      });
+      setCommentTexts({ ...commentTexts, [reviewId]: "" });
+      setExpandedComments({ ...expandedComments, [reviewId]: true });
+      await refetch();
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      alert("Error adding comment. Please try again.");
+    }
+  };
+
+  const handleDeleteComment = async (commentId, reviewId) => {
+    if (!window.confirm("Are you sure you want to delete this comment?")) {
+      return;
+    }
+
+    try {
+      await deleteComment({
+        variables: { commentId },
+      });
+      await refetch();
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      alert("Error deleting comment. Please try again.");
     }
   };
 
@@ -547,10 +632,13 @@ const Book = () => {
               <div className="space-y-4">
                 {data.bookGoogle.reviews.map((review) => {
                   const isOwnReview = review.user?._id === userId;
+                  const showComments = expandedComments[review._id];
+                  const commentText = commentTexts[review._id] || "";
+
                   return (
                     <div
                       key={review._id}
-                      className="border-l-4 border-primary1 pl-4 py-2"
+                      className="border-l-4 border-primary1 pl-4 py-3 bg-gray-50 rounded-r-lg mb-4"
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
@@ -585,7 +673,121 @@ const Book = () => {
                         </h5>
                       )}
                       {review.description && (
-                        <p className="text-gray-700">{review.description}</p>
+                        <p className="text-gray-700 mb-3">{review.description}</p>
+                      )}
+
+                      {/* Like and Comment Actions */}
+                      <div className="flex items-center gap-4 mb-2">
+                        {Auth.loggedIn() ? (
+                          <button
+                            onClick={() => handleLikeReview(review._id)}
+                            className={`flex items-center gap-1 text-sm transition ${
+                              review.isLiked
+                                ? "text-red-500 hover:text-red-700"
+                                : "text-gray-600 hover:text-primary1"
+                            }`}
+                          >
+                            <span className="text-lg">
+                              {review.isLiked ? "❤️" : "🤍"}
+                            </span>
+                            <span>{review.likeCount || 0}</span>
+                          </button>
+                        ) : (
+                          <div className="flex items-center gap-1 text-sm text-gray-600">
+                            <span className="text-lg">🤍</span>
+                            <span>{review.likeCount || 0}</span>
+                          </div>
+                        )}
+                        <button
+                          onClick={() =>
+                            setExpandedComments({
+                              ...expandedComments,
+                              [review._id]: !showComments,
+                            })
+                          }
+                          className="flex items-center gap-1 text-sm text-gray-600 hover:text-primary1 transition"
+                        >
+                          💬 {review.commentCount || 0} comments
+                        </button>
+                      </div>
+
+                      {/* Comments Section */}
+                      {showComments && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          {/* Existing Comments */}
+                          {review.comments && review.comments.length > 0 && (
+                            <div className="space-y-2 mb-3">
+                              {review.comments.map((comment) => {
+                                const isOwnComment =
+                                  comment.user?._id === userId;
+                                return (
+                                  <div
+                                    key={comment._id}
+                                    className="bg-white rounded p-2 text-sm"
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-semibold text-primary2">
+                                          {comment.user?.username || "Anonymous"}
+                                        </span>
+                                        <span className="text-gray-500 text-xs">
+                                          {new Date(
+                                            comment.createdAt
+                                          ).toLocaleDateString()}
+                                        </span>
+                                      </div>
+                                      {isOwnComment && (
+                                        <button
+                                          onClick={() =>
+                                            handleDeleteComment(
+                                              comment._id,
+                                              review._id
+                                            )
+                                          }
+                                          className="text-red-500 hover:text-red-700 text-xs"
+                                        >
+                                          Delete
+                                        </button>
+                                      )}
+                                    </div>
+                                    <p className="text-gray-700 mt-1">
+                                      {comment.text}
+                                    </p>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+
+                          {/* Add Comment Form */}
+                          {Auth.loggedIn() && (
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                placeholder="Write a comment..."
+                                value={commentText}
+                                onChange={(e) =>
+                                  setCommentTexts({
+                                    ...commentTexts,
+                                    [review._id]: e.target.value,
+                                  })
+                                }
+                                onKeyPress={(e) => {
+                                  if (e.key === "Enter") {
+                                    handleAddComment(review._id);
+                                  }
+                                }}
+                                className="flex-1 border border-primary1 rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary1"
+                              />
+                              <button
+                                onClick={() => handleAddComment(review._id)}
+                                className="bg-primary1 text-white px-4 py-1 rounded text-sm hover:bg-accent transition"
+                              >
+                                Post
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
                   );

@@ -6,6 +6,9 @@ export const QUERY_USERS = gql`
       _id
       username
       email
+      followerCount
+      followingCount
+      isFollowing
       books {
         book {
           _id
@@ -33,6 +36,9 @@ export const QUERY_USER = gql`
       location
       favBook
       favAuthor
+      followerCount
+      followingCount
+      isFollowing
       books {
         book {
           _id
@@ -54,6 +60,8 @@ export const QUERY_USER = gql`
         title
         description
         stars
+        likeCount
+        commentCount
         book {
           _id
           google_id
@@ -92,9 +100,21 @@ export const QUERY_BOOKGOOGLE = gql`
         description
         stars
         title
+        likeCount
+        commentCount
+        isLiked
         user {
           _id
           username
+        }
+        comments {
+          _id
+          user {
+            _id
+            username
+          }
+          text
+          createdAt
         }
       }
     }
@@ -116,6 +136,18 @@ export const QUERY_REVIEWS = gql`
       description
       stars
       title
+      likeCount
+      commentCount
+      isLiked
+      comments {
+        _id
+        user {
+          _id
+          username
+        }
+        text
+        createdAt
+      }
     }
   }
 `;
@@ -150,6 +182,33 @@ export const QUERY_CLUB = gql`
         _id
         username
       }
+    }
+  }
+`;
+
+export const QUERY_ACTIVITY_FEED = gql`
+  query ActivityFeed($userId: ID!) {
+    activityFeed(userId: $userId) {
+      _id
+      type
+      user {
+        _id
+        username
+      }
+      review {
+        _id
+        stars
+        title
+        book {
+          _id
+          google_id
+        }
+      }
+      book {
+        _id
+        google_id
+      }
+      createdAt
     }
   }
 `;

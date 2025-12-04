@@ -1,7 +1,12 @@
 import { useQuery, useMutation } from "@apollo/client";
 import { useParams, useNavigate } from "react-router-dom";
 import { QUERY_USER } from "../utils/queries.js";
-import { UPDATE_USER, DELETE_REVIEW } from "../utils/mutations.js";
+import {
+  UPDATE_USER,
+  DELETE_REVIEW,
+  FOLLOW_USER,
+  UNFOLLOW_USER,
+} from "../utils/mutations.js";
 import Auth from "../utils/auth.js";
 import { useState } from "react";
 
@@ -18,8 +23,11 @@ const Profile = () => {
 
   const [updateUser, { error: updateError }] = useMutation(UPDATE_USER);
   const [deleteReview] = useMutation(DELETE_REVIEW);
+  const [followUser] = useMutation(FOLLOW_USER);
+  const [unfollowUser] = useMutation(UNFOLLOW_USER);
   const token = Auth.getProfile();
   const isOwnProfile = token?.data?._id === profileId;
+  const currentUserId = token?.data?._id;
 
   const { loading, data, refetch } = useQuery(QUERY_USER, {
     variables: { userId: profileId },
@@ -167,21 +175,72 @@ const Profile = () => {
     );
   }
 
+  const handleFollow = async () => {
+    if (!Auth.loggedIn()) {
+      navigate("/");
+      return;
+    }
+
+    if (!currentUserId) return;
+
+    try {
+      if (user.isFollowing) {
+        await unfollowUser({
+          variables: {
+            followerId: currentUserId,
+            followingId: profileId,
+          },
+        });
+      } else {
+        await followUser({
+          variables: {
+            followerId: currentUserId,
+            followingId: profileId,
+          },
+        });
+      }
+      await refetch();
+    } catch (error) {
+      console.error("Error following/unfollowing user:", error);
+      alert("Error updating follow status. Please try again.");
+    }
+  };
+
   // Show profile view
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-lg shadow p-8 mt-10 mb-10">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-primary2">
-          {user.username}'s Profile
-        </h1>
-        {isOwnProfile && (
-          <button
-            onClick={handleEditClick}
-            className="bg-primary1 text-white px-4 py-2 rounded hover:bg-accent transition"
-          >
-            Edit Profile
-          </button>
-        )}
+        <div>
+          <h1 className="text-3xl font-bold text-primary2">
+            {user.username}'s Profile
+          </h1>
+          <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+            <span>{user.followerCount || 0} followers</span>
+            <span>{user.followingCount || 0} following</span>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          {!isOwnProfile && Auth.loggedIn() && (
+            <button
+              onClick={handleFollow}
+              className={`px-4 py-2 rounded transition ${
+                user.isFollowing
+                  ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  : "bg-primary1 text-white hover:bg-accent"
+              }`}
+            >
+              {user.isFollowing ? "Unfollow" : "Follow"}
+            </button>
+          )}
+          {isOwnProfile && (
+            <button
+              onClick={handleEditClick}
+              className="bg-primary1 text-white px-4 py-2 rounded hover:bg-accent transition"
+            >
+              Edit Profile
+            </button>
+          )}
+        </div>
       </div>
       <div className="flex flex-col gap-6">
         {user.bio && (

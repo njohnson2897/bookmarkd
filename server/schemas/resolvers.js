@@ -1,4 +1,4 @@
-import { User, Book, Club, Review, Contact } from '../models/index.js';
+import { User, Book, Club, Review, Contact, Like, Comment, Follow } from '../models/index.js';
 import { AuthenticationError, AuthorizationError, signToken, requireAuth, requireAuthAndMatch, requireAuthAndMatchOptional } from '../utils/auth.js';
 
 const resolvers = {
@@ -120,7 +120,64 @@ const resolvers = {
     },
     club: async (parent, { id }) => {
       return Club.findOne({ _id: id }).populate(['owner', 'members']);
-    }
+    },
+    activityFeed: async (parent, { userId }, context) => {
+      // User must be authenticated to see activity feed
+      requireAuth(context);
+      
+      // Get users that the current user is following
+      const follows = await Follow.find({ follower: userId }).select('following');
+      const followingIds = follows.map(f => f.following);
+      
+      // Include the user themselves in the feed
+      followingIds.push(userId);
+      
+      // Get recent reviews from followed users
+      const recentReviews = await Review.find({ user: { $in: followingIds } })
+        .populate([
+          {
+            path: 'book',
+            select: '_id google_id'
+          },
+          {
+            path: 'user',
+            select: '_id username'
+          }
+        ])
+        .sort({ createdAt: -1 })
+        .limit(50);
+      
+      // Get recent club activities (users joining clubs)
+      const recentClubs = await Club.find({ 
+        $or: [
+          { owner: { $in: followingIds } },
+          { members: { $in: followingIds } }
+        ]
+      })
+        .populate(['owner', 'members'])
+        .sort({ createdAt: -1 })
+        .limit(20);
+      
+      // Format as activity items
+      const activities = [];
+      
+      // Add review activities
+      recentReviews.forEach(review => {
+        activities.push({
+          _id: `review_${review._id}`,
+          type: 'review',
+          user: review.user,
+          review: review,
+          book: review.book,
+          createdAt: review.createdAt || new Date(),
+        });
+      });
+      
+      // Sort all activities by date
+      activities.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      
+      return activities.slice(0, 30); // Return top 30 most recent
+    },
   },
 
   Mutation: {
@@ -412,7 +469,151 @@ const resolvers = {
       const contact = await Contact.create({ name, email, message });
       return contact;
     },
-  }
+    likeReview: async (parent, { reviewId, userId }, context) => {
+      // User must be authenticated and can only like as themselves
+      requireAuthAndMatch(context, userId);
+      
+      // Check if like already exists
+      const existingLike = await Like.findOne({ user: userId, review: reviewId });
+      if (existingLike) {
+        // Already liked, return the review
+        return Review.findById(reviewId).populate(['book', 'user']);
+      }
+      
+      // Create the like
+      await Like.create({ user: userId, review: reviewId });
+      
+      return Review.findById(reviewId).populate(['book', 'user']);
+    },
+    unlikeReview: async (parent, { reviewId, userId }, context) => {
+      // User must be authenticated and can only unlike as themselves
+      requireAuthAndMatch(context, userId);
+      
+      // Remove the like
+      await Like.findOneAndDelete({ user: userId, review: reviewId });
+      
+      return Review.findById(reviewId).populate(['book', 'user']);
+    },
+    addComment: async (parent, { reviewId, userId, text }, context) => {
+      // User must be authenticated and can only comment as themselves
+      requireAuthAndMatch(context, userId);
+      
+      const comment = await Comment.create({ user: userId, review: reviewId, text });
+      return Comment.findById(comment._id).populate(['user', 'review']);
+    },
+    deleteComment: async (parent, { commentId }, context) => {
+      // User must be authenticated
+      requireAuth(context);
+      
+      const comment = await Comment.findById(commentId);
+      if (!comment) {
+        throw new Error('Comment not found');
+      }
+      
+      // Only the comment owner can delete their comment
+      requireAuthAndMatch(context, comment.user);
+      
+      return Comment.findOneAndDelete({ _id: commentId });
+    },
+    followUser: async (parent, { followerId, followingId }, context) => {
+      // User must be authenticated and can only follow as themselves
+      requireAuthAndMatch(context, followerId);
+      
+      // Can't follow yourself
+      if (followerId.toString() === followingId.toString()) {
+        throw new Error('Cannot follow yourself');
+      }
+      
+      // Check if already following
+      const existingFollow = await Follow.findOne({ follower: followerId, following: followingId });
+      if (existingFollow) {
+        return User.findById(followingId).populate(['books.book', 'reviews', 'clubs']);
+      }
+      
+      // Create the follow relationship
+      await Follow.create({ follower: followerId, following: followingId });
+      
+      return User.findById(followingId).populate(['books.book', 'reviews', 'clubs']);
+    },
+    unfollowUser: async (parent, { followerId, followingId }, context) => {
+      // User must be authenticated and can only unfollow as themselves
+      requireAuthAndMatch(context, followerId);
+      
+      // Remove the follow relationship
+      await Follow.findOneAndDelete({ follower: followerId, following: followingId });
+      
+      return User.findById(followingId).populate(['books.book', 'reviews', 'clubs']);
+    },
+  },
+  
+  // Field resolvers for Review
+  Review: {
+    likes: async (parent, args, context) => {
+      const likes = await Like.find({ review: parent._id }).populate('user');
+      return likes;
+    },
+    comments: async (parent, args, context) => {
+      const comments = await Comment.find({ review: parent._id })
+        .populate('user')
+        .sort({ createdAt: -1 });
+      return comments;
+    },
+    likeCount: async (parent, args, context) => {
+      return Like.countDocuments({ review: parent._id });
+    },
+    commentCount: async (parent, args, context) => {
+      return Comment.countDocuments({ review: parent._id });
+    },
+    isLiked: async (parent, args, context) => {
+      if (!context || !context.user || !context.user._id) {
+        return false;
+      }
+      const like = await Like.findOne({ review: parent._id, user: context.user._id });
+      return !!like;
+    },
+    createdAt: (parent) => {
+      return parent.createdAt ? parent.createdAt.toISOString() : null;
+    },
+  },
+  
+  // Field resolvers for User
+  User: {
+    followers: async (parent, args, context) => {
+      const follows = await Follow.find({ following: parent._id }).populate('follower');
+      return follows.map(follow => follow.follower);
+    },
+    following: async (parent, args, context) => {
+      const follows = await Follow.find({ follower: parent._id }).populate('following');
+      return follows.map(follow => follow.following);
+    },
+    followerCount: async (parent, args, context) => {
+      return Follow.countDocuments({ following: parent._id });
+    },
+    followingCount: async (parent, args, context) => {
+      return Follow.countDocuments({ follower: parent._id });
+    },
+    isFollowing: async (parent, args, context) => {
+      if (!context || !context.user || !context.user._id) {
+        return false;
+      }
+      const follow = await Follow.findOne({ follower: context.user._id, following: parent._id });
+      return !!follow;
+    },
+  },
+  
+  // Field resolver for Comment
+  Comment: {
+    createdAt: (parent) => {
+      return parent.createdAt ? parent.createdAt.toISOString() : null;
+    },
+  },
+  
+  // Field resolver for Like
+  Like: {
+    createdAt: (parent) => {
+      return parent.createdAt ? parent.createdAt.toISOString() : null;
+    },
+  },
 };
 
 export default resolvers;

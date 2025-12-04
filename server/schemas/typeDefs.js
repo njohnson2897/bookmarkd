@@ -10,6 +10,11 @@ const typeDefs = `
     books: [BookStatus]
     reviews: [Review]
     clubs: [Club]
+    followers: [User]
+    following: [User]
+    followerCount: Int
+    followingCount: Int
+    isFollowing: Boolean
   }
 
   type Book {
@@ -36,6 +41,12 @@ const typeDefs = `
     stars: Float!
     title: String
     description: String
+    likes: [Like]
+    comments: [Comment]
+    likeCount: Int
+    commentCount: Int
+    isLiked: Boolean
+    createdAt: String
   }
 
   type Club {
@@ -53,6 +64,31 @@ const typeDefs = `
     createdAt: String!
   }
 
+  type Like {
+    _id: ID!
+    user: User!
+    review: Review!
+    createdAt: String!
+  }
+
+  type Comment {
+    _id: ID!
+    user: User!
+    review: Review!
+    text: String!
+    createdAt: String!
+  }
+
+  type Activity {
+    _id: ID!
+    type: String!
+    user: User!
+    review: Review
+    book: Book
+    club: Club
+    createdAt: String!
+  }
+
   type Query {
     users: [User!]
     user(id: ID!): User
@@ -63,6 +99,7 @@ const typeDefs = `
     review(id: ID!): Review
     clubs: [Club!]
     club(id: ID!): Club
+    activityFeed(userId: ID!): [Activity]
   }
 
   type Mutation {
@@ -82,6 +119,12 @@ const typeDefs = `
     editUserBookFavorite(bookId: ID!, userId: ID!, favorite: Boolean!): User
     login(email: String!, password: String!): Auth
     submitContact(name: String!, email: String!, message: String!): Contact
+    likeReview(reviewId: ID!, userId: ID!): Review
+    unlikeReview(reviewId: ID!, userId: ID!): Review
+    addComment(reviewId: ID!, userId: ID!, text: String!): Comment
+    deleteComment(commentId: ID!): Comment
+    followUser(followerId: ID!, followingId: ID!): User
+    unfollowUser(followerId: ID!, followingId: ID!): User
   }
 `;
 

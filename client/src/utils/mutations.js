@@ -238,4 +238,66 @@ export const SUBMIT_CONTACT = gql`
   }
 `;
 
+export const LIKE_REVIEW = gql`
+  mutation LikeReview($reviewId: ID!, $userId: ID!) {
+    likeReview(reviewId: $reviewId, userId: $userId) {
+      _id
+      likeCount
+      isLiked
+    }
+  }
+`;
+
+export const UNLIKE_REVIEW = gql`
+  mutation UnlikeReview($reviewId: ID!, $userId: ID!) {
+    unlikeReview(reviewId: $reviewId, userId: $userId) {
+      _id
+      likeCount
+      isLiked
+    }
+  }
+`;
+
+export const ADD_COMMENT = gql`
+  mutation AddComment($reviewId: ID!, $userId: ID!, $text: String!) {
+    addComment(reviewId: $reviewId, userId: $userId, text: $text) {
+      _id
+      user {
+        _id
+        username
+      }
+      text
+      createdAt
+    }
+  }
+`;
+
+export const DELETE_COMMENT = gql`
+  mutation DeleteComment($commentId: ID!) {
+    deleteComment(commentId: $commentId) {
+      _id
+    }
+  }
+`;
+
+export const FOLLOW_USER = gql`
+  mutation FollowUser($followerId: ID!, $followingId: ID!) {
+    followUser(followerId: $followerId, followingId: $followingId) {
+      _id
+      followerCount
+      isFollowing
+    }
+  }
+`;
+
+export const UNFOLLOW_USER = gql`
+  mutation UnfollowUser($followerId: ID!, $followingId: ID!) {
+    unfollowUser(followerId: $followerId, followingId: $followingId) {
+      _id
+      followerCount
+      isFollowing
+    }
+  }
+`;
+
 

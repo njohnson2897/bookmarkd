@@ -22,7 +22,11 @@ const reviewSchema = new Schema({
   },
   description: {
     type: String,
-  }
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 const Review = model('Review', reviewSchema);
