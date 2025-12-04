@@ -7,7 +7,7 @@ A social media platform for book lovers - like Letterboxd, but for books!
 Bookmarkd is a social media / book review website where users can:
 
 - Create an account and build their personal book collection
-- Add books to their reading list (To-Read, Currently Reading, Read)
+- Add books to their reading list (To-Read, Currently Reading, Finished)
 - Post reviews of books they've finished
 - Browse and search books using the Google Books API
 - View other users' profiles and review history

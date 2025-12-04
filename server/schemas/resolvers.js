@@ -4,10 +4,46 @@ import { AuthenticationError, signToken } from '../utils/auth.js';
 const resolvers = {
   Query: {
     users: async () => {
-      return User.find().populate(['books.book', 'reviews', 'clubs']);
+      const users = await User.find().populate([
+        'books.book',
+        {
+          path: 'reviews',
+          populate: {
+            path: 'book',
+            select: '_id google_id'
+          }
+        },
+        'clubs'
+      ]);
+      
+      // Filter out reviews with invalid books for each user
+      users.forEach(user => {
+        if (user.reviews) {
+          user.reviews = user.reviews.filter(review => review.book && review.book.google_id);
+        }
+      });
+      
+      return users;
     },
     user: async (parent, { id }) => {
-      return User.findOne({ _id: id }).populate(['books.book', 'reviews', 'clubs']);
+      const user = await User.findOne({ _id: id }).populate([
+        'books.book',
+        {
+          path: 'reviews',
+          populate: {
+            path: 'book',
+            select: '_id google_id'
+          }
+        },
+        'clubs'
+      ]);
+      
+      // Filter out reviews with invalid books (books without google_id)
+      if (user && user.reviews) {
+        user.reviews = user.reviews.filter(review => review.book && review.book.google_id);
+      }
+      
+      return user;
     },
     books: async () => {
       const books = await Book.find().populate({

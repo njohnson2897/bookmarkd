@@ -95,6 +95,11 @@ function Navbar() {
                   </Link>
                 </li>
                 <li>
+                  <Link className="hover:text-primary1 transition" to="/my-books">
+                    My Books
+                  </Link>
+                </li>
+                <li>
                   <Link className="hover:text-primary1 transition" to="/clubs">
                     Book Clubs
                   </Link>

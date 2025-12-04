@@ -1,8 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@apollo/client";
-import { QUERY_BOOKGOOGLE } from "../utils/queries.js";
-import { ADD_BOOK_STATUS, ADD_BOOK, ADD_REVIEW } from "../utils/mutations.js";
+import { QUERY_BOOKGOOGLE, QUERY_USER } from "../utils/queries.js";
+import {
+  ADD_BOOK_STATUS,
+  ADD_BOOK,
+  ADD_REVIEW,
+  EDIT_USER_BOOK_STATUS,
+  EDIT_USER_BOOK_FAVORITE,
+} from "../utils/mutations.js";
 import Auth from "../utils/auth.js";
 
 const Book = () => {
@@ -23,14 +29,28 @@ const Book = () => {
   const { bookId } = useParams();
   const navigate = useNavigate();
 
+  const userId = Auth.loggedIn() ? Auth.getProfile()?.data?._id : null;
+
   const { loading, data, refetch } = useQuery(QUERY_BOOKGOOGLE, {
     variables: { googleId: bookId },
     skip: !bookId,
   });
 
+  const { data: userData, refetch: refetchUser } = useQuery(QUERY_USER, {
+    variables: { userId },
+    skip: !userId || !data?.bookGoogle?._id,
+  });
+
   const [addBook] = useMutation(ADD_BOOK);
   const [addBookStatusMutation] = useMutation(ADD_BOOK_STATUS);
   const [addReview, { error: reviewError }] = useMutation(ADD_REVIEW);
+  const [editBookStatus] = useMutation(EDIT_USER_BOOK_STATUS);
+  const [editBookFavorite] = useMutation(EDIT_USER_BOOK_FAVORITE);
+
+  // Get current book status from user's collection
+  const currentBookStatus = userData?.user?.books?.find(
+    (bookStatus) => bookStatus.book?._id === data?.bookGoogle?._id
+  );
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -120,6 +140,7 @@ const Book = () => {
             },
           });
           setBookSaved(true);
+          await refetchUser();
         }
       } else {
         await addBookStatusMutation({
@@ -131,6 +152,7 @@ const Book = () => {
           },
         });
         setBookSaved(true);
+        await refetchUser();
       }
     } catch (error) {
       console.error(error);
@@ -231,13 +253,90 @@ const Book = () => {
           {loading ? (
             <div className="text-primary2">Loading...</div>
           ) : Auth.loggedIn() ? (
-            <button
-              className="bg-primary1 text-white px-6 py-2 rounded hover:bg-accent transition mt-2 disabled:opacity-50"
-              onClick={handleSaveBook}
-              disabled={bookSaved}
-            >
-              {bookSaved ? "Book Saved!" : "Save to My Books"}
-            </button>
+            currentBookStatus ? (
+              <div className="space-y-3 mt-2">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <p className="text-green-800 font-semibold mb-3">
+                    ✓ This book is in your collection
+                  </p>
+
+                  {/* Status Dropdown */}
+                  <div className="mb-3">
+                    <label className="block text-sm font-semibold text-primary2 mb-1">
+                      Reading Status:
+                    </label>
+                    <select
+                      value={currentBookStatus.status}
+                      onChange={async (e) => {
+                        try {
+                          await editBookStatus({
+                            variables: {
+                              bookId: data?.bookGoogle?._id,
+                              userId,
+                              status: e.target.value,
+                            },
+                          });
+                          await refetchUser();
+                        } catch (error) {
+                          console.error("Error updating status:", error);
+                          alert("Error updating status. Please try again.");
+                        }
+                      }}
+                      className="w-full border border-primary1 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary1"
+                    >
+                      <option value="To-Read">To-Read</option>
+                      <option value="Currently Reading">
+                        Currently Reading
+                      </option>
+                      <option value="Finished">Finished</option>
+                    </select>
+                  </div>
+
+                  {/* Favorite Toggle */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={async () => {
+                        try {
+                          await editBookFavorite({
+                            variables: {
+                              bookId: data?.bookGoogle?._id,
+                              userId,
+                              favorite: !currentBookStatus.favorite,
+                            },
+                          });
+                          await refetchUser();
+                        } catch (error) {
+                          console.error("Error toggling favorite:", error);
+                          alert("Error updating favorite. Please try again.");
+                        }
+                      }}
+                      className={`flex items-center gap-2 px-3 py-2 rounded transition ${
+                        currentBookStatus.favorite
+                          ? "bg-yellow-50 text-yellow-700 border border-yellow-300"
+                          : "bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"
+                      }`}
+                    >
+                      <span className="text-xl">
+                        {currentBookStatus.favorite ? "★" : "☆"}
+                      </span>
+                      <span className="text-sm font-semibold">
+                        {currentBookStatus.favorite
+                          ? "Favorite"
+                          : "Mark as Favorite"}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <button
+                className="bg-primary1 text-white px-6 py-2 rounded hover:bg-accent transition mt-2 disabled:opacity-50"
+                onClick={handleSaveBook}
+                disabled={bookSaved}
+              >
+                {bookSaved ? "Book Saved!" : "Save to My Books"}
+              </button>
+            )
           ) : (
             <p className="text-gray-600">
               Please sign in to save this book to your collection.
