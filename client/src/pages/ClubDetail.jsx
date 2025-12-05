@@ -11,6 +11,7 @@ import {
   CREATE_DISCUSSION_THREAD,
   ADD_READING_CHECKPOINT,
   UPDATE_READING_CHECKPOINT,
+  UPDATE_CLUB,
 } from "../utils/mutations.js";
 import Auth from "../utils/auth.js";
 import DiscussionThread from "../components/DiscussionThread.jsx";
@@ -64,13 +65,16 @@ const ClubDetail = () => {
   const [createDiscussionThread] = useMutation(CREATE_DISCUSSION_THREAD);
   const [addReadingCheckpoint] = useMutation(ADD_READING_CHECKPOINT);
   const [updateReadingCheckpoint] = useMutation(UPDATE_READING_CHECKPOINT);
+  const [updateClub] = useMutation(UPDATE_CLUB);
 
   const club = data?.club;
   const threads = threadsData?.clubThreads || [];
   const isOwner = club?.isOwner || false;
   const isModerator = club?.isModerator || false;
   const isMember = club?.isMember || false;
-  const canJoin = !isOwner && !isMember && Auth.loggedIn();
+  // Can join if: logged in, not owner, not member, and club is not invite-only (unless already member)
+  const canJoin =
+    !isOwner && !isMember && Auth.loggedIn() && club?.privacy !== "invite-only";
   const canManage = isOwner || isModerator;
 
   // Fetch book details for current book
@@ -111,6 +115,25 @@ const ClubDetail = () => {
       alert("Please sign in to join a club.");
       navigate("/");
       return;
+    }
+
+    // Check privacy settings
+    if (club.privacy === "invite-only") {
+      alert(
+        "This club is invite-only. You must be invited by a member to join."
+      );
+      return;
+    }
+
+    // For private clubs, we'll allow direct join for now (can add request system later)
+    if (club.privacy === "private") {
+      if (
+        !window.confirm(
+          "This is a private club. Would you like to request to join?"
+        )
+      ) {
+        return;
+      }
     }
 
     try {
@@ -339,6 +362,23 @@ const ClubDetail = () => {
     }
   };
 
+  const handleUpdatePrivacy = async (newPrivacy) => {
+    if (!isOwner) return;
+
+    try {
+      await updateClub({
+        variables: {
+          clubId,
+          privacy: newPrivacy,
+        },
+      });
+      await refetch();
+    } catch (error) {
+      console.error("Error updating privacy:", error);
+      alert("Error updating privacy setting. Please try again.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -424,6 +464,31 @@ const ClubDetail = () => {
                 >
                   {club.owner?.username || "Unknown"}
                 </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="capitalize">
+                  {club.privacy === "public" && "🌐 Public"}
+                  {club.privacy === "private" && "🔒 Private"}
+                  {club.privacy === "invite-only" && "🔐 Invite-Only"}
+                </span>
+                {isOwner && (
+                  <select
+                    value={club.privacy || "public"}
+                    onChange={(e) => handleUpdatePrivacy(e.target.value)}
+                    className="ml-2 bg-white/20 text-white border border-white/30 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-white/50"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <option value="public" className="text-gray-900">
+                      Public
+                    </option>
+                    <option value="private" className="text-gray-900">
+                      Private
+                    </option>
+                    <option value="invite-only" className="text-gray-900">
+                      Invite-Only
+                    </option>
+                  </select>
+                )}
               </div>
             </div>
           </div>
@@ -567,8 +632,7 @@ const ClubDetail = () => {
                 )}
               </div>
 
-              {club.readingCheckpoints &&
-              club.readingCheckpoints.length > 0 ? (
+              {club.readingCheckpoints && club.readingCheckpoints.length > 0 ? (
                 <div className="space-y-3">
                   {club.readingCheckpoints.map((checkpoint, index) => (
                     <div
@@ -586,7 +650,8 @@ const ClubDetail = () => {
                         <div className="flex items-center gap-4 text-sm text-gray-600">
                           {checkpoint.date && (
                             <span>
-                              Due: {new Date(checkpoint.date).toLocaleDateString()}
+                              Due:{" "}
+                              {new Date(checkpoint.date).toLocaleDateString()}
                             </span>
                           )}
                           {checkpoint.chapters && (
@@ -797,8 +862,18 @@ const ClubDetail = () => {
                   }}
                   className="text-gray-500 hover:text-gray-700"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
@@ -873,8 +948,18 @@ const ClubDetail = () => {
                   }}
                   className="text-gray-500 hover:text-gray-700"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
@@ -903,7 +988,10 @@ const ClubDetail = () => {
                   <select
                     value={threadForm.threadType}
                     onChange={(e) =>
-                      setThreadForm({ ...threadForm, threadType: e.target.value })
+                      setThreadForm({
+                        ...threadForm,
+                        threadType: e.target.value,
+                      })
                     }
                     className="w-full border-2 border-primary1 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary1"
                   >
@@ -997,8 +1085,18 @@ const ClubDetail = () => {
                   }}
                   className="text-gray-500 hover:text-gray-700"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
@@ -1087,4 +1185,3 @@ const ClubDetail = () => {
 };
 
 export default ClubDetail;
-

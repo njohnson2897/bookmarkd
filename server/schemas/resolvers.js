@@ -331,13 +331,16 @@ const resolvers = {
 
       return { token, user };
     },
-    addClub: async (parent, { name, owner, description }, context) => {
+    addClub: async (parent, { name, owner, description, privacy }, context) => {
       // User must be authenticated and can only create clubs as themselves
       requireAuthAndMatch(context, owner);
       
       const clubData = { name, owner };
       if (description) {
         clubData.description = description;
+      }
+      if (privacy) {
+        clubData.privacy = privacy;
       }
       
       const club = await Club.create(clubData);

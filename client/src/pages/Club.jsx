@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function Club() {
   const [clubName, setClubName] = useState("");
+  const [clubPrivacy, setClubPrivacy] = useState("public");
   const [showForm, setShowForm] = useState(false);
   const { loading, data, refetch } = useQuery(QUERY_CLUBS);
   const [addClub, { error }] = useMutation(ADD_CLUB);
@@ -35,9 +36,11 @@ export default function Club() {
         variables: {
           name: clubName,
           owner: token.data._id,
+          privacy: clubPrivacy,
         },
       });
       setClubName("");
+      setClubPrivacy("public");
       setShowForm(false);
       await refetch();
       alert("Book club created successfully!");
@@ -59,12 +62,35 @@ export default function Club() {
     return club.owner._id === userId;
   };
 
+  // Filter out invite-only clubs for non-members
+  const visibleClubs = clubs.filter(club => {
+    if (club.privacy === "invite-only") {
+      // Only show invite-only clubs if user is a member or owner
+      return isMemberOfClub(club) || isOwnerOfClub(club);
+    }
+    return true;
+  });
+
   const handleJoinClub = async (clubId, e) => {
     e.stopPropagation();
     if (!userId) {
       alert("Please sign in to join a club.");
       navigate("/");
       return;
+    }
+
+    // Find the club to check privacy
+    const club = clubs.find(c => c._id === clubId);
+    if (club?.privacy === "invite-only") {
+      alert("This club is invite-only. You must be invited by a member to join.");
+      return;
+    }
+
+    // For private clubs, we'll allow direct join for now (can add request system later)
+    if (club?.privacy === "private") {
+      if (!window.confirm("This is a private club. Would you like to request to join?")) {
+        return;
+      }
     }
 
     try {
@@ -151,6 +177,26 @@ export default function Club() {
                 required
               />
             </div>
+            <div>
+              <label htmlFor="clubPrivacy" className="block font-semibold text-primary2 mb-2">
+                Privacy Setting
+              </label>
+              <select
+                id="clubPrivacy"
+                className="w-full rounded-lg px-4 py-3 border-2 border-primary1 focus:outline-none focus:ring-2 focus:ring-primary1 text-lg"
+                value={clubPrivacy}
+                onChange={(e) => setClubPrivacy(e.target.value)}
+              >
+                <option value="public">Public - Anyone can see and join</option>
+                <option value="private">Private - Anyone can see, but must request to join</option>
+                <option value="invite-only">Invite-Only - Hidden from browse, join by invite only</option>
+              </select>
+              <p className="text-sm text-gray-600 mt-2">
+                {clubPrivacy === "public" && "Your club will be visible to everyone and anyone can join."}
+                {clubPrivacy === "private" && "Your club will be visible, but users must request to join (you can approve requests)."}
+                {clubPrivacy === "invite-only" && "Your club will be hidden from the browse page. Only members you invite can join."}
+              </p>
+            </div>
             <button
               type="submit"
               className="bg-primary1 text-white rounded-lg px-6 py-3 hover:bg-accent transition font-semibold self-start"
@@ -170,7 +216,7 @@ export default function Club() {
       )}
 
       {/* Empty State */}
-      {!loading && clubs.length === 0 && (
+      {!loading && visibleClubs.length === 0 && (
         <div className="bg-white rounded-lg shadow-lg p-12 text-center">
           <svg
             className="mx-auto h-24 w-24 text-gray-400 mb-4"
@@ -197,18 +243,19 @@ export default function Club() {
       )}
 
       {/* Clubs Grid */}
-      {!loading && clubs.length > 0 && (
+      {!loading && visibleClubs.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-primary2">
-              {clubs.length} {clubs.length === 1 ? "Club" : "Clubs"}
+              {visibleClubs.length} {visibleClubs.length === 1 ? "Club" : "Clubs"}
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {clubs.map((club) => {
+            {visibleClubs.map((club) => {
               const isMember = isMemberOfClub(club);
               const isOwner = isOwnerOfClub(club);
-              const canJoin = !isMember && !isOwner && isLoggedIn;
+              // Can join if: logged in, not member, not owner, and club is not invite-only
+              const canJoin = !isMember && !isOwner && isLoggedIn && club.privacy !== "invite-only";
               const totalMembers = (club.members?.length || 0) + (isOwner ? 1 : 0);
 
               return (
@@ -243,6 +290,11 @@ export default function Club() {
                         </svg>
                         <span>{totalMembers} {totalMembers === 1 ? "member" : "members"}</span>
                       </div>
+                      <span className="text-xs bg-white/20 px-2 py-1 rounded">
+                        {club.privacy === "public" && "🌐 Public"}
+                        {club.privacy === "private" && "🔒 Private"}
+                        {club.privacy === "invite-only" && "🔐 Invite-Only"}
+                      </span>
                     </div>
                   </div>
 

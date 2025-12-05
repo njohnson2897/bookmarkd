@@ -72,11 +72,12 @@ export const ADD_REVIEW = gql`
 `;
 
 export const ADD_CLUB = gql`
-  mutation AddClub($name: String!, $owner: ID!, $description: String) {
-    addClub(name: $name, owner: $owner, description: $description) {
+  mutation AddClub($name: String!, $owner: ID!, $description: String, $privacy: String) {
+    addClub(name: $name, owner: $owner, description: $description, privacy: $privacy) {
       _id
       name
       description
+      privacy
       owner {
         _id
         username
