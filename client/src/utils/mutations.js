@@ -72,10 +72,11 @@ export const ADD_REVIEW = gql`
 `;
 
 export const ADD_CLUB = gql`
-  mutation AddClub($name: String!, $owner: ID!) {
-    addClub(name: $name, owner: $owner) {
+  mutation AddClub($name: String!, $owner: ID!, $description: String) {
+    addClub(name: $name, owner: $owner, description: $description) {
       _id
       name
+      description
       owner {
         _id
         username
@@ -318,6 +319,230 @@ export const MARK_ALL_NOTIFICATIONS_AS_READ = gql`
 export const DELETE_NOTIFICATION = gql`
   mutation DeleteNotification($notificationId: ID!) {
     deleteNotification(notificationId: $notificationId) {
+      _id
+    }
+  }
+`;
+
+// Club Management Mutations
+export const UPDATE_CLUB = gql`
+  mutation UpdateClub($clubId: ID!, $name: String, $description: String, $privacy: String, $memberLimit: Int) {
+    updateClub(clubId: $clubId, name: $name, description: $description, privacy: $privacy, memberLimit: $memberLimit) {
+      _id
+      name
+      description
+      privacy
+      memberLimit
+      owner {
+        _id
+        username
+      }
+      members {
+        _id
+        username
+      }
+      moderators {
+        _id
+        username
+      }
+    }
+  }
+`;
+
+export const ASSIGN_CLUB_BOOK = gql`
+  mutation AssignClubBook($clubId: ID!, $bookId: ID!, $bookGoogleId: String!, $startDate: String) {
+    assignClubBook(clubId: $clubId, bookId: $bookId, bookGoogleId: $bookGoogleId, startDate: $startDate) {
+      _id
+      currentBook {
+        _id
+        google_id
+      }
+      currentBookGoogleId
+      currentBookStartDate
+      readingCheckpoints {
+        title
+        date
+        chapters
+        completed
+      }
+    }
+  }
+`;
+
+export const ROTATE_CLUB_BOOK = gql`
+  mutation RotateClubBook($clubId: ID!) {
+    rotateClubBook(clubId: $clubId) {
+      _id
+      currentBook {
+        _id
+        google_id
+      }
+      currentBookGoogleId
+      currentBookStartDate
+      nextBook {
+        _id
+        google_id
+      }
+      nextBookGoogleId
+      readingCheckpoints {
+        title
+        date
+        chapters
+        completed
+      }
+    }
+  }
+`;
+
+export const ADD_CLUB_MODERATOR = gql`
+  mutation AddClubModerator($clubId: ID!, $userId: ID!) {
+    addClubModerator(clubId: $clubId, userId: $userId) {
+      _id
+      moderators {
+        _id
+        username
+      }
+    }
+  }
+`;
+
+export const REMOVE_CLUB_MODERATOR = gql`
+  mutation RemoveClubModerator($clubId: ID!, $userId: ID!) {
+    removeClubModerator(clubId: $clubId, userId: $userId) {
+      _id
+      moderators {
+        _id
+        username
+      }
+    }
+  }
+`;
+
+export const ADD_READING_CHECKPOINT = gql`
+  mutation AddReadingCheckpoint($clubId: ID!, $title: String!, $date: String!, $chapters: String) {
+    addReadingCheckpoint(clubId: $clubId, title: $title, date: $date, chapters: $chapters) {
+      _id
+      readingCheckpoints {
+        title
+        date
+        chapters
+        completed
+      }
+    }
+  }
+`;
+
+export const UPDATE_READING_CHECKPOINT = gql`
+  mutation UpdateReadingCheckpoint($clubId: ID!, $checkpointIndex: Int!, $title: String, $date: String, $chapters: String, $completed: Boolean) {
+    updateReadingCheckpoint(clubId: $clubId, checkpointIndex: $checkpointIndex, title: $title, date: $date, chapters: $chapters, completed: $completed) {
+      _id
+      readingCheckpoints {
+        title
+        date
+        chapters
+        completed
+      }
+    }
+  }
+`;
+
+// Discussion Thread Mutations
+export const CREATE_DISCUSSION_THREAD = gql`
+  mutation CreateDiscussionThread($clubId: ID!, $bookId: ID!, $bookGoogleId: String!, $title: String!, $content: String!, $threadType: String!, $chapterRange: String) {
+    createDiscussionThread(clubId: $clubId, bookId: $bookId, bookGoogleId: $bookGoogleId, title: $title, content: $content, threadType: $threadType, chapterRange: $chapterRange) {
+      _id
+      title
+      content
+      threadType
+      chapterRange
+      isPinned
+      isLocked
+      replyCount
+      author {
+        _id
+        username
+      }
+      createdAt
+    }
+  }
+`;
+
+export const ADD_THREAD_REPLY = gql`
+  mutation AddThreadReply($threadId: ID!, $userId: ID!, $text: String!) {
+    addThreadReply(threadId: $threadId, userId: $userId, text: $text) {
+      _id
+      replyCount
+      replies {
+        _id
+        user {
+          _id
+          username
+        }
+        text
+        createdAt
+      }
+      updatedAt
+    }
+  }
+`;
+
+export const DELETE_THREAD_REPLY = gql`
+  mutation DeleteThreadReply($threadId: ID!, $replyId: ID!) {
+    deleteThreadReply(threadId: $threadId, replyId: $replyId) {
+      _id
+      replyCount
+      replies {
+        _id
+        user {
+          _id
+          username
+        }
+        text
+        createdAt
+      }
+    }
+  }
+`;
+
+export const PIN_THREAD = gql`
+  mutation PinThread($threadId: ID!) {
+    pinThread(threadId: $threadId) {
+      _id
+      isPinned
+    }
+  }
+`;
+
+export const UNPIN_THREAD = gql`
+  mutation UnpinThread($threadId: ID!) {
+    unpinThread(threadId: $threadId) {
+      _id
+      isPinned
+    }
+  }
+`;
+
+export const LOCK_THREAD = gql`
+  mutation LockThread($threadId: ID!) {
+    lockThread(threadId: $threadId) {
+      _id
+      isLocked
+    }
+  }
+`;
+
+export const UNLOCK_THREAD = gql`
+  mutation UnlockThread($threadId: ID!) {
+    unlockThread(threadId: $threadId) {
+      _id
+      isLocked
+    }
+  }
+`;
+
+export const DELETE_THREAD = gql`
+  mutation DeleteThread($threadId: ID!) {
+    deleteThread(threadId: $threadId) {
       _id
     }
   }

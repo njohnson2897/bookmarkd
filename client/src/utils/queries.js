@@ -157,6 +157,7 @@ export const QUERY_CLUBS = gql`
     clubs {
       _id
       name
+      description
       owner {
         _id
         username
@@ -165,6 +166,34 @@ export const QUERY_CLUBS = gql`
         _id
         username
       }
+      moderators {
+        _id
+        username
+      }
+      currentBook {
+        _id
+        google_id
+      }
+      currentBookGoogleId
+      currentBookStartDate
+      nextBook {
+        _id
+        google_id
+      }
+      nextBookGoogleId
+      readingCheckpoints {
+        title
+        date
+        chapters
+        completed
+      }
+      privacy
+      memberLimit
+      memberCount
+      isMember
+      isOwner
+      isModerator
+      createdAt
     }
   }
 `;
@@ -174,6 +203,7 @@ export const QUERY_CLUB = gql`
     club(id: $id) {
       _id
       name
+      description
       owner {
         _id
         username
@@ -182,6 +212,90 @@ export const QUERY_CLUB = gql`
         _id
         username
       }
+      moderators {
+        _id
+        username
+      }
+      currentBook {
+        _id
+        google_id
+      }
+      currentBookGoogleId
+      currentBookStartDate
+      nextBook {
+        _id
+        google_id
+      }
+      nextBookGoogleId
+      readingCheckpoints {
+        title
+        date
+        chapters
+        completed
+      }
+      privacy
+      memberLimit
+      memberCount
+      isMember
+      isOwner
+      isModerator
+      discussionThreads {
+        _id
+        title
+        content
+        threadType
+        chapterRange
+        isPinned
+        isLocked
+        replyCount
+        author {
+          _id
+          username
+        }
+        replies {
+          _id
+          user {
+            _id
+            username
+          }
+          text
+          createdAt
+        }
+        createdAt
+        updatedAt
+      }
+      createdAt
+    }
+  }
+`;
+
+export const QUERY_CLUB_THREADS = gql`
+  query ClubThreads($clubId: ID!, $bookGoogleId: String) {
+    clubThreads(clubId: $clubId, bookGoogleId: $bookGoogleId) {
+      _id
+      title
+      content
+      threadType
+      chapterRange
+      isPinned
+      isLocked
+      replyCount
+      bookGoogleId
+      author {
+        _id
+        username
+      }
+      replies {
+        _id
+        user {
+          _id
+          username
+        }
+        text
+        createdAt
+      }
+      createdAt
+      updatedAt
     }
   }
 `;

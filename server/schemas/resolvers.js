@@ -1,4 +1,4 @@
-import { User, Book, Club, Review, Contact, Like, Comment, Follow, Notification } from '../models/index.js';
+import { User, Book, Club, Review, Contact, Like, Comment, Follow, Notification, DiscussionThread } from '../models/index.js';
 import { AuthenticationError, AuthorizationError, signToken, requireAuth, requireAuthAndMatch, requireAuthAndMatchOptional } from '../utils/auth.js';
 
 const resolvers = {
@@ -115,11 +115,63 @@ const resolvers = {
     review: async (parent, { id }) => {
       return Review.findOne({ _id: id }).populate(['book', 'user']);
     },
-    clubs: async () => {
-      return Club.find().populate(['owner', 'members']);
+    clubs: async (parent, args, context) => {
+      const clubs = await Club.find().populate(['owner', 'members', 'moderators', 'currentBook', 'nextBook']);
+      const userId = context.user?._id?.toString();
+      
+      // Add computed fields
+      return clubs.map(club => {
+        const clubObj = club.toObject();
+        clubObj.memberCount = (club.members?.length || 0) + (club.owner ? 1 : 0);
+        clubObj.isMember = userId ? (
+          club.members?.some(m => m._id.toString() === userId) || 
+          club.owner?._id?.toString() === userId
+        ) : false;
+        clubObj.isOwner = userId ? club.owner?._id?.toString() === userId : false;
+        clubObj.isModerator = userId ? (
+          club.moderators?.some(m => m._id.toString() === userId) || 
+          club.owner?._id?.toString() === userId
+        ) : false;
+        return clubObj;
+      });
     },
-    club: async (parent, { id }) => {
-      return Club.findOne({ _id: id }).populate(['owner', 'members']);
+    club: async (parent, { id }, context) => {
+      const club = await Club.findOne({ _id: id }).populate([
+        'owner', 
+        'members', 
+        'moderators', 
+        'currentBook', 
+        'nextBook'
+      ]);
+      
+      if (!club) return null;
+      
+      const userId = context.user?._id?.toString();
+      const clubObj = club.toObject();
+      clubObj.memberCount = (club.members?.length || 0) + (club.owner ? 1 : 0);
+      clubObj.isMember = userId ? (
+        club.members?.some(m => m._id.toString() === userId) || 
+        club.owner?._id?.toString() === userId
+      ) : false;
+      clubObj.isOwner = userId ? club.owner?._id?.toString() === userId : false;
+      clubObj.isModerator = userId ? (
+        club.moderators?.some(m => m._id.toString() === userId) || 
+        club.owner?._id?.toString() === userId
+      ) : false;
+      
+      return clubObj;
+    },
+    clubThreads: async (parent, { clubId, bookGoogleId }, context) => {
+      requireAuth(context);
+      
+      const query = { club: clubId };
+      if (bookGoogleId) {
+        query.bookGoogleId = bookGoogleId;
+      }
+      
+      return DiscussionThread.find(query)
+        .populate(['club', 'book', 'author', 'replies.user'])
+        .sort({ isPinned: -1, createdAt: -1 });
     },
     activityFeed: async (parent, { userId }, context) => {
       // User must be authenticated to see activity feed
@@ -276,11 +328,16 @@ const resolvers = {
 
       return { token, user };
     },
-    addClub: async (parent, { name, owner }, context) => {
+    addClub: async (parent, { name, owner, description }, context) => {
       // User must be authenticated and can only create clubs as themselves
       requireAuthAndMatch(context, owner);
       
-      const club = await Club.create({ name, owner });
+      const clubData = { name, owner };
+      if (description) {
+        clubData.description = description;
+      }
+      
+      const club = await Club.create(clubData);
       await User.findOneAndUpdate(
         { _id: owner },
         { $addToSet: { clubs: club._id } }
@@ -448,6 +505,420 @@ const resolvers = {
       }
 
       return Club.findOneAndDelete({ _id: clubId });
+    },
+    updateClub: async (parent, { clubId, name, description, privacy, memberLimit }, context) => {
+      requireAuth(context);
+      
+      const club = await Club.findById(clubId);
+      if (!club) {
+        throw new Error('Club not found');
+      }
+      
+      // Only owner or moderators can update club
+      const userId = context.user._id.toString();
+      const isOwner = club.owner.toString() === userId;
+      const isModerator = club.moderators?.some(m => m.toString() === userId);
+      
+      if (!isOwner && !isModerator) {
+        throw AuthorizationError;
+      }
+      
+      const updateData = {};
+      if (name !== undefined) updateData.name = name;
+      if (description !== undefined) updateData.description = description;
+      if (privacy !== undefined) updateData.privacy = privacy;
+      if (memberLimit !== undefined) updateData.memberLimit = memberLimit;
+      
+      return Club.findByIdAndUpdate(clubId, updateData, { new: true })
+        .populate(['owner', 'members', 'moderators', 'currentBook', 'nextBook']);
+    },
+    assignClubBook: async (parent, { clubId, bookId, bookGoogleId, startDate }, context) => {
+      requireAuth(context);
+      
+      const club = await Club.findById(clubId);
+      if (!club) {
+        throw new Error('Club not found');
+      }
+      
+      // Only owner or moderators can assign books
+      const userId = context.user._id.toString();
+      const isOwner = club.owner.toString() === userId;
+      const isModerator = club.moderators?.some(m => m.toString() === userId);
+      
+      if (!isOwner && !isModerator) {
+        throw AuthorizationError;
+      }
+      
+      // Ensure book exists in database - check by google_id first
+      let book = await Book.findOne({ google_id: bookGoogleId });
+      if (!book) {
+        book = await Book.create({ google_id: bookGoogleId });
+      }
+      
+      const updateData = {
+        currentBook: book._id,
+        currentBookGoogleId: bookGoogleId,
+        currentBookStartDate: startDate ? new Date(startDate) : new Date(),
+        readingCheckpoints: [], // Reset checkpoints
+      };
+      
+      // If there was a next book, clear it
+      if (club.nextBook) {
+        updateData.nextBook = null;
+        updateData.nextBookGoogleId = null;
+      }
+      
+      return Club.findByIdAndUpdate(clubId, updateData, { new: true })
+        .populate(['owner', 'members', 'moderators', 'currentBook', 'nextBook']);
+    },
+    rotateClubBook: async (parent, { clubId }, context) => {
+      requireAuth(context);
+      
+      const club = await Club.findById(clubId);
+      if (!club) {
+        throw new Error('Club not found');
+      }
+      
+      // Only owner or moderators can rotate books
+      const userId = context.user._id.toString();
+      const isOwner = club.owner.toString() === userId;
+      const isModerator = club.moderators?.some(m => m.toString() === userId);
+      
+      if (!isOwner && !isModerator) {
+        throw AuthorizationError;
+      }
+      
+      if (!club.currentBook) {
+        throw new Error('No current book to rotate');
+      }
+      
+      // Move current book to history (could be stored separately in future)
+      // For now, just clear it and set next book as current if it exists
+      const updateData = {
+        currentBook: club.nextBook || null,
+        currentBookGoogleId: club.nextBookGoogleId || null,
+        currentBookStartDate: club.nextBook ? new Date() : null,
+        nextBook: null,
+        nextBookGoogleId: null,
+        readingCheckpoints: [],
+      };
+      
+      return Club.findByIdAndUpdate(clubId, updateData, { new: true })
+        .populate(['owner', 'members', 'moderators', 'currentBook', 'nextBook']);
+    },
+    addClubModerator: async (parent, { clubId, userId }, context) => {
+      requireAuth(context);
+      
+      const club = await Club.findById(clubId);
+      if (!club) {
+        throw new Error('Club not found');
+      }
+      
+      // Only owner can add moderators
+      requireAuthAndMatch(context, club.owner);
+      
+      if (club.moderators?.includes(userId)) {
+        return Club.findById(clubId).populate(['owner', 'members', 'moderators']);
+      }
+      
+      return Club.findByIdAndUpdate(
+        clubId,
+        { $addToSet: { moderators: userId } },
+        { new: true }
+      ).populate(['owner', 'members', 'moderators']);
+    },
+    removeClubModerator: async (parent, { clubId, userId }, context) => {
+      requireAuth(context);
+      
+      const club = await Club.findById(clubId);
+      if (!club) {
+        throw new Error('Club not found');
+      }
+      
+      // Only owner can remove moderators
+      requireAuthAndMatch(context, club.owner);
+      
+      return Club.findByIdAndUpdate(
+        clubId,
+        { $pull: { moderators: userId } },
+        { new: true }
+      ).populate(['owner', 'members', 'moderators']);
+    },
+    addReadingCheckpoint: async (parent, { clubId, title, date, chapters }, context) => {
+      requireAuth(context);
+      
+      const club = await Club.findById(clubId);
+      if (!club) {
+        throw new Error('Club not found');
+      }
+      
+      // Only owner or moderators can add checkpoints
+      const userId = context.user._id.toString();
+      const isOwner = club.owner.toString() === userId;
+      const isModerator = club.moderators?.some(m => m.toString() === userId);
+      
+      if (!isOwner && !isModerator) {
+        throw AuthorizationError;
+      }
+      
+      const checkpoint = {
+        title,
+        date: new Date(date),
+        chapters: chapters || '',
+        completed: false,
+      };
+      
+      return Club.findByIdAndUpdate(
+        clubId,
+        { $push: { readingCheckpoints: checkpoint } },
+        { new: true }
+      ).populate(['owner', 'members', 'moderators', 'currentBook', 'nextBook']);
+    },
+    updateReadingCheckpoint: async (parent, { clubId, checkpointIndex, title, date, chapters, completed }, context) => {
+      requireAuth(context);
+      
+      const club = await Club.findById(clubId);
+      if (!club) {
+        throw new Error('Club not found');
+      }
+      
+      // Only owner or moderators can update checkpoints
+      const userId = context.user._id.toString();
+      const isOwner = club.owner.toString() === userId;
+      const isModerator = club.moderators?.some(m => m.toString() === userId);
+      
+      if (!isOwner && !isModerator) {
+        throw AuthorizationError;
+      }
+      
+      const updateData = {};
+      if (title !== undefined) updateData[`readingCheckpoints.${checkpointIndex}.title`] = title;
+      if (date !== undefined) updateData[`readingCheckpoints.${checkpointIndex}.date`] = new Date(date);
+      if (chapters !== undefined) updateData[`readingCheckpoints.${checkpointIndex}.chapters`] = chapters;
+      if (completed !== undefined) updateData[`readingCheckpoints.${checkpointIndex}.completed`] = completed;
+      
+      return Club.findByIdAndUpdate(clubId, { $set: updateData }, { new: true })
+        .populate(['owner', 'members', 'moderators', 'currentBook', 'nextBook']);
+    },
+    createDiscussionThread: async (parent, { clubId, bookId, bookGoogleId, title, content, threadType, chapterRange }, context) => {
+      requireAuth(context);
+      
+      const club = await Club.findById(clubId);
+      if (!club) {
+        throw new Error('Club not found');
+      }
+      
+      // User must be a member of the club
+      const userId = context.user._id.toString();
+      const isMember = club.members?.some(m => m.toString() === userId) || 
+                      club.owner.toString() === userId;
+      
+      if (!isMember) {
+        throw new Error('You must be a member of this club to create discussion threads');
+      }
+      
+      // Ensure book exists - check by google_id first
+      let book = await Book.findOne({ google_id: bookGoogleId });
+      if (!book) {
+        book = await Book.create({ google_id: bookGoogleId });
+      }
+      
+      const thread = await DiscussionThread.create({
+        club: clubId,
+        book: book._id,
+        bookGoogleId,
+        author: userId,
+        title,
+        content,
+        threadType: threadType || 'general',
+        chapterRange: chapterRange || null,
+      });
+      
+      return DiscussionThread.findById(thread._id)
+        .populate(['club', 'book', 'author', 'replies.user']);
+    },
+    addThreadReply: async (parent, { threadId, userId, text }, context) => {
+      requireAuthAndMatch(context, userId);
+      
+      const thread = await DiscussionThread.findById(threadId).populate('club');
+      if (!thread) {
+        throw new Error('Thread not found');
+      }
+      
+      if (thread.isLocked) {
+        throw new Error('This thread is locked');
+      }
+      
+      // Check if user is a member of the club
+      const club = thread.club;
+      const isMember = club.members?.some(m => m._id.toString() === userId) || 
+                      club.owner._id.toString() === userId;
+      
+      if (!isMember) {
+        throw new Error('You must be a member of this club to reply');
+      }
+      
+      const reply = {
+        user: userId,
+        text,
+        createdAt: new Date(),
+      };
+      
+      return DiscussionThread.findByIdAndUpdate(
+        threadId,
+        { 
+          $push: { replies: reply },
+          $inc: { replyCount: 1 },
+          $set: { updatedAt: new Date() }
+        },
+        { new: true }
+      ).populate(['club', 'book', 'author', 'replies.user']);
+    },
+    deleteThreadReply: async (parent, { threadId, replyId }, context) => {
+      requireAuth(context);
+      
+      const thread = await DiscussionThread.findById(threadId);
+      if (!thread) {
+        throw new Error('Thread not found');
+      }
+      
+      const reply = thread.replies.id(replyId);
+      if (!reply) {
+        throw new Error('Reply not found');
+      }
+      
+      // User must be the reply author, thread author, club owner, or moderator
+      const userId = context.user._id.toString();
+      const isReplyAuthor = reply.user.toString() === userId;
+      const isThreadAuthor = thread.author.toString() === userId;
+      
+      const club = await Club.findById(thread.club);
+      const isOwner = club.owner.toString() === userId;
+      const isModerator = club.moderators?.some(m => m.toString() === userId);
+      
+      if (!isReplyAuthor && !isThreadAuthor && !isOwner && !isModerator) {
+        throw AuthorizationError;
+      }
+      
+      thread.replies.pull(replyId);
+      thread.replyCount = Math.max(0, thread.replyCount - 1);
+      await thread.save();
+      
+      return DiscussionThread.findById(threadId)
+        .populate(['club', 'book', 'author', 'replies.user']);
+    },
+    pinThread: async (parent, { threadId }, context) => {
+      requireAuth(context);
+      
+      const thread = await DiscussionThread.findById(threadId).populate('club');
+      if (!thread) {
+        throw new Error('Thread not found');
+      }
+      
+      const club = thread.club;
+      const userId = context.user._id.toString();
+      const isOwner = club.owner.toString() === userId;
+      const isModerator = club.moderators?.some(m => m._id.toString() === userId);
+      
+      if (!isOwner && !isModerator) {
+        throw AuthorizationError;
+      }
+      
+      return DiscussionThread.findByIdAndUpdate(
+        threadId,
+        { $set: { isPinned: true } },
+        { new: true }
+      ).populate(['club', 'book', 'author', 'replies.user']);
+    },
+    unpinThread: async (parent, { threadId }, context) => {
+      requireAuth(context);
+      
+      const thread = await DiscussionThread.findById(threadId).populate('club');
+      if (!thread) {
+        throw new Error('Thread not found');
+      }
+      
+      const club = thread.club;
+      const userId = context.user._id.toString();
+      const isOwner = club.owner.toString() === userId;
+      const isModerator = club.moderators?.some(m => m._id.toString() === userId);
+      
+      if (!isOwner && !isModerator) {
+        throw AuthorizationError;
+      }
+      
+      return DiscussionThread.findByIdAndUpdate(
+        threadId,
+        { $set: { isPinned: false } },
+        { new: true }
+      ).populate(['club', 'book', 'author', 'replies.user']);
+    },
+    lockThread: async (parent, { threadId }, context) => {
+      requireAuth(context);
+      
+      const thread = await DiscussionThread.findById(threadId).populate('club');
+      if (!thread) {
+        throw new Error('Thread not found');
+      }
+      
+      const club = thread.club;
+      const userId = context.user._id.toString();
+      const isOwner = club.owner.toString() === userId;
+      const isModerator = club.moderators?.some(m => m._id.toString() === userId);
+      
+      if (!isOwner && !isModerator) {
+        throw AuthorizationError;
+      }
+      
+      return DiscussionThread.findByIdAndUpdate(
+        threadId,
+        { $set: { isLocked: true } },
+        { new: true }
+      ).populate(['club', 'book', 'author', 'replies.user']);
+    },
+    unlockThread: async (parent, { threadId }, context) => {
+      requireAuth(context);
+      
+      const thread = await DiscussionThread.findById(threadId).populate('club');
+      if (!thread) {
+        throw new Error('Thread not found');
+      }
+      
+      const club = thread.club;
+      const userId = context.user._id.toString();
+      const isOwner = club.owner.toString() === userId;
+      const isModerator = club.moderators?.some(m => m._id.toString() === userId);
+      
+      if (!isOwner && !isModerator) {
+        throw AuthorizationError;
+      }
+      
+      return DiscussionThread.findByIdAndUpdate(
+        threadId,
+        { $set: { isLocked: false } },
+        { new: true }
+      ).populate(['club', 'book', 'author', 'replies.user']);
+    },
+    deleteThread: async (parent, { threadId }, context) => {
+      requireAuth(context);
+      
+      const thread = await DiscussionThread.findById(threadId).populate('club');
+      if (!thread) {
+        throw new Error('Thread not found');
+      }
+      
+      const club = thread.club;
+      const userId = context.user._id.toString();
+      const isThreadAuthor = thread.author.toString() === userId;
+      const isOwner = club.owner.toString() === userId;
+      const isModerator = club.moderators?.some(m => m._id.toString() === userId);
+      
+      if (!isThreadAuthor && !isOwner && !isModerator) {
+        throw AuthorizationError;
+      }
+      
+      await DiscussionThread.findByIdAndDelete(threadId);
+      return thread;
     },
     removeUserBook: async (parent, { bookId, userId }, context) => {
       // User must be authenticated and can only remove books from their own collection
@@ -728,6 +1199,52 @@ const resolvers = {
   Notification: {
     createdAt: (parent) => {
       return parent.createdAt ? parent.createdAt.toISOString() : null;
+    },
+  },
+  
+  // Field resolvers for Club
+  Club: {
+    discussionThreads: async (parent, args, context) => {
+      // Only return threads for current book if there is one
+      const query = { club: parent._id };
+      if (parent.currentBookGoogleId) {
+        query.bookGoogleId = parent.currentBookGoogleId;
+      }
+      
+      return DiscussionThread.find(query)
+        .populate(['book', 'author', 'replies.user'])
+        .sort({ isPinned: -1, createdAt: -1 })
+        .limit(50);
+    },
+    createdAt: (parent) => {
+      return parent.createdAt ? parent.createdAt.toISOString() : null;
+    },
+    currentBookStartDate: (parent) => {
+      return parent.currentBookStartDate ? parent.currentBookStartDate.toISOString() : null;
+    },
+  },
+  
+  // Field resolvers for DiscussionThread
+  DiscussionThread: {
+    createdAt: (parent) => {
+      return parent.createdAt ? parent.createdAt.toISOString() : null;
+    },
+    updatedAt: (parent) => {
+      return parent.updatedAt ? parent.updatedAt.toISOString() : null;
+    },
+  },
+  
+  // Field resolver for ThreadReply
+  ThreadReply: {
+    createdAt: (parent) => {
+      return parent.createdAt ? parent.createdAt.toISOString() : null;
+    },
+  },
+  
+  // Field resolver for ReadingCheckpoint
+  ReadingCheckpoint: {
+    date: (parent) => {
+      return parent.date ? parent.date.toISOString() : null;
     },
   },
 };

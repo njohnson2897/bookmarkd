@@ -52,8 +52,56 @@ const typeDefs = `
   type Club {
     _id: ID!
     name: String!
+    description: String
     owner: User!
     members: [User]
+    moderators: [User]
+    currentBook: Book
+    currentBookGoogleId: String
+    currentBookStartDate: String
+    nextBook: Book
+    nextBookGoogleId: String
+    readingCheckpoints: [ReadingCheckpoint]
+    privacy: String
+    memberLimit: Int
+    memberCount: Int
+    isMember: Boolean
+    isOwner: Boolean
+    isModerator: Boolean
+    discussionThreads: [DiscussionThread]
+    createdAt: String
+  }
+
+  type ReadingCheckpoint {
+    title: String
+    date: String
+    chapters: String
+    completed: Boolean
+  }
+
+  type DiscussionThread {
+    _id: ID!
+    club: Club!
+    book: Book!
+    bookGoogleId: String!
+    author: User!
+    title: String!
+    content: String!
+    threadType: String!
+    chapterRange: String
+    isPinned: Boolean!
+    isLocked: Boolean!
+    replies: [ThreadReply]
+    replyCount: Int!
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  type ThreadReply {
+    _id: ID!
+    user: User!
+    text: String!
+    createdAt: String!
   }
 
   type Contact {
@@ -110,6 +158,7 @@ const typeDefs = `
     review(id: ID!): Review
     clubs: [Club!]
     club(id: ID!): Club
+    clubThreads(clubId: ID!, bookGoogleId: String): [DiscussionThread!]
     activityFeed(userId: ID!): [Activity]
     notifications(userId: ID!): [Notification]
     unreadNotificationCount(userId: ID!): Int
@@ -121,7 +170,7 @@ const typeDefs = `
     addBook(google_id: String!): Book
     addBookStatus(book: ID!, user: ID!, status: String!, favorite: Boolean!): User
     addReview(book: ID!, user: ID!, stars: Float!, title: String, description: String): Review
-    addClub(name: String!, owner: ID!): Club
+    addClub(name: String!, owner: ID!, description: String): Club
     addClubMember(clubId: ID!, userId: ID!): Club
     removeClubMember(clubId: ID!, userId: ID!): Club
     updateReview(reviewId: ID!, stars: Float, title: String, description: String): Review
@@ -141,6 +190,21 @@ const typeDefs = `
     markNotificationAsRead(notificationId: ID!): Notification
     markAllNotificationsAsRead(userId: ID!): Boolean
     deleteNotification(notificationId: ID!): Notification
+    updateClub(clubId: ID!, name: String, description: String, privacy: String, memberLimit: Int): Club
+    assignClubBook(clubId: ID!, bookId: ID!, bookGoogleId: String!, startDate: String): Club
+    rotateClubBook(clubId: ID!): Club
+    addClubModerator(clubId: ID!, userId: ID!): Club
+    removeClubModerator(clubId: ID!, userId: ID!): Club
+    addReadingCheckpoint(clubId: ID!, title: String!, date: String!, chapters: String): Club
+    updateReadingCheckpoint(clubId: ID!, checkpointIndex: Int!, title: String, date: String, chapters: String, completed: Boolean): Club
+    createDiscussionThread(clubId: ID!, bookId: ID!, bookGoogleId: String!, title: String!, content: String!, threadType: String!, chapterRange: String): DiscussionThread
+    addThreadReply(threadId: ID!, userId: ID!, text: String!): DiscussionThread
+    deleteThreadReply(threadId: ID!, replyId: ID!): DiscussionThread
+    pinThread(threadId: ID!): DiscussionThread
+    unpinThread(threadId: ID!): DiscussionThread
+    lockThread(threadId: ID!): DiscussionThread
+    unlockThread(threadId: ID!): DiscussionThread
+    deleteThread(threadId: ID!): DiscussionThread
   }
 `;
 
