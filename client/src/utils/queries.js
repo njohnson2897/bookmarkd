@@ -349,6 +349,18 @@ export const QUERY_NOTIFICATIONS = gql`
         _id
         text
       }
+      club {
+        _id
+        name
+      }
+      book {
+        _id
+        google_id
+      }
+      discussionThread {
+        _id
+        title
+      }
       createdAt
     }
   }

@@ -144,6 +144,9 @@ const typeDefs = `
     fromUser: User!
     review: Review
     comment: Comment
+    club: Club
+    book: Book
+    discussionThread: DiscussionThread
     read: Boolean!
     createdAt: String!
   }
@@ -191,13 +194,13 @@ const typeDefs = `
     markAllNotificationsAsRead(userId: ID!): Boolean
     deleteNotification(notificationId: ID!): Notification
     updateClub(clubId: ID!, name: String, description: String, privacy: String, memberLimit: Int): Club
-    assignClubBook(clubId: ID!, bookId: ID!, bookGoogleId: String!, startDate: String): Club
+    assignClubBook(clubId: ID!, bookId: ID, bookGoogleId: String!, startDate: String): Club
     rotateClubBook(clubId: ID!): Club
     addClubModerator(clubId: ID!, userId: ID!): Club
     removeClubModerator(clubId: ID!, userId: ID!): Club
     addReadingCheckpoint(clubId: ID!, title: String!, date: String!, chapters: String): Club
     updateReadingCheckpoint(clubId: ID!, checkpointIndex: Int!, title: String, date: String, chapters: String, completed: Boolean): Club
-    createDiscussionThread(clubId: ID!, bookId: ID!, bookGoogleId: String!, title: String!, content: String!, threadType: String!, chapterRange: String): DiscussionThread
+    createDiscussionThread(clubId: ID!, bookId: ID, bookGoogleId: String!, title: String!, content: String!, threadType: String!, chapterRange: String): DiscussionThread
     addThreadReply(threadId: ID!, userId: ID!, text: String!): DiscussionThread
     deleteThreadReply(threadId: ID!, replyId: ID!): DiscussionThread
     pinThread(threadId: ID!): DiscussionThread

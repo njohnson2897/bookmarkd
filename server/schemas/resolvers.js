@@ -239,6 +239,9 @@ const resolvers = {
       
       const notifications = await Notification.find({ user: userId })
         .populate('fromUser', '_id username')
+        .populate('club', '_id name')
+        .populate('book', '_id google_id')
+        .populate('discussionThread', '_id title')
         .populate({
           path: 'review',
           populate: {
@@ -568,8 +571,28 @@ const resolvers = {
         updateData.nextBookGoogleId = null;
       }
       
-      return Club.findByIdAndUpdate(clubId, updateData, { new: true })
+      const updatedClub = await Club.findByIdAndUpdate(clubId, updateData, { new: true })
         .populate(['owner', 'members', 'moderators', 'currentBook', 'nextBook']);
+      
+      // Create notifications for all club members (excluding the person who assigned the book)
+      const allMembers = [
+        ...(club.members || []).map(m => m.toString()),
+        club.owner.toString()
+      ].filter(memberId => memberId !== userId);
+      
+      if (allMembers.length > 0) {
+        const notifications = allMembers.map(memberId => ({
+          user: memberId,
+          type: 'book_assigned',
+          fromUser: userId,
+          club: clubId,
+          book: book._id,
+          read: false,
+        }));
+        await Notification.insertMany(notifications);
+      }
+      
+      return updatedClub;
     },
     rotateClubBook: async (parent, { clubId }, context) => {
       requireAuth(context);
@@ -603,8 +626,28 @@ const resolvers = {
         readingCheckpoints: [],
       };
       
-      return Club.findByIdAndUpdate(clubId, updateData, { new: true })
+      const updatedClub = await Club.findByIdAndUpdate(clubId, updateData, { new: true })
         .populate(['owner', 'members', 'moderators', 'currentBook', 'nextBook']);
+      
+      // Create notifications for all club members (excluding the person who rotated the book)
+      const allMembers = [
+        ...(club.members || []).map(m => m.toString()),
+        club.owner.toString()
+      ].filter(memberId => memberId !== userId);
+      
+      if (allMembers.length > 0 && updatedClub.currentBook) {
+        const notifications = allMembers.map(memberId => ({
+          user: memberId,
+          type: 'book_rotated',
+          fromUser: userId,
+          club: clubId,
+          book: updatedClub.currentBook._id,
+          read: false,
+        }));
+        await Notification.insertMany(notifications);
+      }
+      
+      return updatedClub;
     },
     addClubModerator: async (parent, { clubId, userId }, context) => {
       requireAuth(context);
@@ -668,11 +711,31 @@ const resolvers = {
         completed: false,
       };
       
-      return Club.findByIdAndUpdate(
+      const updatedClub = await Club.findByIdAndUpdate(
         clubId,
         { $push: { readingCheckpoints: checkpoint } },
         { new: true }
       ).populate(['owner', 'members', 'moderators', 'currentBook', 'nextBook']);
+      
+      // Create notifications for all club members (excluding the person who added the checkpoint)
+      const allMembers = [
+        ...(club.members || []).map(m => m.toString()),
+        club.owner.toString()
+      ].filter(memberId => memberId !== userId);
+      
+      if (allMembers.length > 0) {
+        const notifications = allMembers.map(memberId => ({
+          user: memberId,
+          type: 'checkpoint_added',
+          fromUser: userId,
+          club: clubId,
+          book: club.currentBook?._id || null,
+          read: false,
+        }));
+        await Notification.insertMany(notifications);
+      }
+      
+      return updatedClub;
     },
     updateReadingCheckpoint: async (parent, { clubId, checkpointIndex, title, date, chapters, completed }, context) => {
       requireAuth(context);
@@ -734,6 +797,25 @@ const resolvers = {
         chapterRange: chapterRange || null,
       });
       
+      // Create notifications for all club members (excluding the thread author)
+      const allMembers = [
+        ...(club.members || []).map(m => m.toString()),
+        club.owner.toString()
+      ].filter(memberId => memberId !== userId);
+      
+      if (allMembers.length > 0) {
+        const notifications = allMembers.map(memberId => ({
+          user: memberId,
+          type: 'thread_created',
+          fromUser: userId,
+          club: clubId,
+          book: book._id,
+          discussionThread: thread._id,
+          read: false,
+        }));
+        await Notification.insertMany(notifications);
+      }
+      
       return DiscussionThread.findById(thread._id)
         .populate(['club', 'book', 'author', 'replies.user']);
     },
@@ -764,7 +846,7 @@ const resolvers = {
         createdAt: new Date(),
       };
       
-      return DiscussionThread.findByIdAndUpdate(
+      const updatedThread = await DiscussionThread.findByIdAndUpdate(
         threadId,
         { 
           $push: { replies: reply },
@@ -773,6 +855,21 @@ const resolvers = {
         },
         { new: true }
       ).populate(['club', 'book', 'author', 'replies.user']);
+      
+      // Create notification for thread author (if they're not the one replying)
+      if (thread.author.toString() !== userId) {
+        await Notification.create({
+          user: thread.author,
+          type: 'thread_reply',
+          fromUser: userId,
+          club: club._id,
+          book: thread.book?._id || null,
+          discussionThread: threadId,
+          read: false,
+        });
+      }
+      
+      return updatedThread;
     },
     deleteThreadReply: async (parent, { threadId, replyId }, context) => {
       requireAuth(context);
@@ -1197,6 +1294,15 @@ const resolvers = {
   
   // Field resolver for Notification
   Notification: {
+    club: async (parent) => {
+      return parent.club ? Club.findById(parent.club) : null;
+    },
+    book: async (parent) => {
+      return parent.book ? Book.findById(parent.book) : null;
+    },
+    discussionThread: async (parent) => {
+      return parent.discussionThread ? DiscussionThread.findById(parent.discussionThread) : null;
+    },
     createdAt: (parent) => {
       return parent.createdAt ? parent.createdAt.toISOString() : null;
     },

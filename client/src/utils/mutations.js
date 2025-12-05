@@ -350,7 +350,7 @@ export const UPDATE_CLUB = gql`
 `;
 
 export const ASSIGN_CLUB_BOOK = gql`
-  mutation AssignClubBook($clubId: ID!, $bookId: ID!, $bookGoogleId: String!, $startDate: String) {
+  mutation AssignClubBook($clubId: ID!, $bookId: ID, $bookGoogleId: String!, $startDate: String) {
     assignClubBook(clubId: $clubId, bookId: $bookId, bookGoogleId: $bookGoogleId, startDate: $startDate) {
       _id
       currentBook {
@@ -448,7 +448,7 @@ export const UPDATE_READING_CHECKPOINT = gql`
 
 // Discussion Thread Mutations
 export const CREATE_DISCUSSION_THREAD = gql`
-  mutation CreateDiscussionThread($clubId: ID!, $bookId: ID!, $bookGoogleId: String!, $title: String!, $content: String!, $threadType: String!, $chapterRange: String) {
+  mutation CreateDiscussionThread($clubId: ID!, $bookId: ID, $bookGoogleId: String!, $title: String!, $content: String!, $threadType: String!, $chapterRange: String) {
     createDiscussionThread(clubId: $clubId, bookId: $bookId, bookGoogleId: $bookGoogleId, title: $title, content: $content, threadType: $threadType, chapterRange: $chapterRange) {
       _id
       title

@@ -9,7 +9,7 @@ const notificationSchema = new Schema({
   type: {
     type: String,
     required: true,
-    enum: ['like', 'comment', 'follow', 'review'],
+    enum: ['like', 'comment', 'follow', 'review', 'club_invite', 'new_review', 'book_assigned', 'book_rotated', 'thread_created', 'thread_reply', 'checkpoint_added'],
   },
   fromUser: {
     type: Schema.Types.ObjectId,
@@ -23,6 +23,18 @@ const notificationSchema = new Schema({
   comment: {
     type: Schema.Types.ObjectId,
     ref: 'Comment',
+  },
+  club: {
+    type: Schema.Types.ObjectId,
+    ref: 'Club',
+  },
+  book: {
+    type: Schema.Types.ObjectId,
+    ref: 'Book',
+  },
+  discussionThread: {
+    type: Schema.Types.ObjectId,
+    ref: 'DiscussionThread',
   },
   read: {
     type: Boolean,

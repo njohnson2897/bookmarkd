@@ -72,7 +72,16 @@ const NotificationBell = () => {
     }
 
     // Navigate based on notification type
-    if (notification.review?.book?.google_id) {
+    if (notification.club?._id) {
+      // Club-related notifications
+      if (notification.discussionThread?._id) {
+        // Navigate to club detail page (threads are shown there)
+        navigate(`/clubs/${notification.club._id}`);
+      } else {
+        // Navigate to club detail page
+        navigate(`/clubs/${notification.club._id}`);
+      }
+    } else if (notification.review?.book?.google_id) {
       navigate(`/books/${notification.review.book.google_id}`);
     } else if (notification.fromUser?._id) {
       navigate(`/profile/${notification.fromUser._id}`);
@@ -108,6 +117,8 @@ const NotificationBell = () => {
 
   const getNotificationText = (notification) => {
     const username = notification.fromUser?.username || "Someone";
+    const clubName = notification.club?.name || "a club";
+    
     switch (notification.type) {
       case "like":
         return `${username} liked your review`;
@@ -117,6 +128,16 @@ const NotificationBell = () => {
         return `${username} started following you`;
       case "review":
         return `${username} posted a new review`;
+      case "book_assigned":
+        return `${username} assigned a new book to ${clubName}`;
+      case "book_rotated":
+        return `${username} rotated to a new book in ${clubName}`;
+      case "thread_created":
+        return `${username} created a discussion thread in ${clubName}`;
+      case "thread_reply":
+        return `${username} replied to your discussion thread`;
+      case "checkpoint_added":
+        return `${username} added a reading checkpoint to ${clubName}`;
       default:
         return "New notification";
     }
@@ -202,6 +223,16 @@ const NotificationBell = () => {
                       {notification.comment?.text && (
                         <p className="text-xs text-gray-600 mt-1 truncate">
                           "{notification.comment.text}"
+                        </p>
+                      )}
+                      {notification.discussionThread?.title && (
+                        <p className="text-xs text-gray-600 mt-1 truncate">
+                          Thread: {notification.discussionThread.title}
+                        </p>
+                      )}
+                      {notification.club && !notification.discussionThread && (
+                        <p className="text-xs text-primary1 mt-1">
+                          {notification.club.name}
                         </p>
                       )}
                       <p className="text-xs text-gray-500 mt-1">
