@@ -28,6 +28,15 @@ const MyBooks = () => {
   const user = data?.user || {};
   const books = user.books || [];
 
+  // Calculate statistics
+  const stats = {
+    total: books.length,
+    toRead: books.filter((b) => b.status === "To-Read").length,
+    currentlyReading: books.filter((b) => b.status === "Currently Reading").length,
+    finished: books.filter((b) => b.status === "Finished").length,
+    favorites: books.filter((b) => b.favorite).length,
+  };
+
   // Fetch book details from Google Books API
   useEffect(() => {
     const fetchBookDetails = async () => {
@@ -135,53 +144,131 @@ const MyBooks = () => {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto py-10 px-4 text-center">
-        <p className="text-lg text-primary2">Loading your books...</p>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <svg
+              className="animate-spin h-12 w-12 text-primary1 mx-auto mb-4"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <p className="text-lg text-primary2 font-semibold">Loading your collection...</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto py-10 px-4">
-      <h1 className="text-3xl font-bold text-primary2 mb-8 text-center">
-        My Books
-      </h1>
-
-      {/* Status Filter */}
-      <div className="mb-6 flex flex-wrap gap-2 justify-center">
-        {["All", "To-Read", "Currently Reading", "Finished"].map((status) => (
-          <button
-            key={status}
-            onClick={() => setSelectedStatus(status)}
-            className={`px-4 py-2 rounded transition ${
-              selectedStatus === status
-                ? "bg-primary1 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-          >
-            {status}
-            {status !== "All" &&
-              ` (${books.filter((b) => b.status === status).length})`}
-          </button>
-        ))}
+    <div className="max-w-7xl mx-auto px-4 py-8 mb-10">
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-primary2 to-primary1 rounded-t-lg p-8 text-white mb-6">
+        <h1 className="text-4xl font-bold mb-2">My Books</h1>
+        <p className="text-white/90">
+          Manage your personal book collection and reading journey
+        </p>
       </div>
 
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div className="bg-white rounded-lg shadow-md p-4 text-center hover:shadow-lg transition">
+          <div className="text-3xl font-bold text-primary2">{stats.total}</div>
+          <div className="text-sm text-gray-600 mt-1">Total Books</div>
+        </div>
+        <div className="bg-white rounded-lg shadow-md p-4 text-center hover:shadow-lg transition">
+          <div className="text-3xl font-bold text-blue-600">{stats.toRead}</div>
+          <div className="text-sm text-gray-600 mt-1">To-Read</div>
+        </div>
+        <div className="bg-white rounded-lg shadow-md p-4 text-center hover:shadow-lg transition">
+          <div className="text-3xl font-bold text-yellow-600">{stats.currentlyReading}</div>
+          <div className="text-sm text-gray-600 mt-1">Reading</div>
+        </div>
+        <div className="bg-white rounded-lg shadow-md p-4 text-center hover:shadow-lg transition">
+          <div className="text-3xl font-bold text-green-600">{stats.finished}</div>
+          <div className="text-sm text-gray-600 mt-1">Finished</div>
+        </div>
+        <div className="bg-white rounded-lg shadow-md p-4 text-center hover:shadow-lg transition">
+          <div className="text-3xl font-bold text-yellow-500">{stats.favorites}</div>
+          <div className="text-sm text-gray-600 mt-1">Favorites</div>
+        </div>
+      </div>
+
+      {/* Status Filter */}
+      <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+        <div className="flex flex-wrap gap-3">
+          {["All", "To-Read", "Currently Reading", "Finished"].map((status) => {
+            const count =
+              status === "All"
+                ? stats.total
+                : books.filter((b) => b.status === status).length;
+            return (
+              <button
+                key={status}
+                onClick={() => setSelectedStatus(status)}
+                className={`px-5 py-2.5 rounded-lg font-semibold transition-all duration-200 ${
+                  selectedStatus === status
+                    ? "bg-primary1 text-white shadow-md transform scale-105"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                {status}
+                <span className="ml-2 text-sm opacity-90">({count})</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Books Grid */}
       {filteredBooks.length === 0 ? (
-        <div className="text-center py-10">
-          <p className="text-lg text-gray-600 mb-4">
+        <div className="bg-white rounded-lg shadow-md p-12 text-center">
+          <svg
+            className="w-24 h-24 text-gray-300 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+            />
+          </svg>
+          <p className="text-xl text-gray-700 font-semibold mb-2">
             {selectedStatus === "All"
-              ? "You haven't added any books to your collection yet."
-              : `You don't have any books with status "${selectedStatus}".`}
+              ? "Your collection is empty"
+              : `No books with status "${selectedStatus}"`}
+          </p>
+          <p className="text-gray-500 mb-6">
+            {selectedStatus === "All"
+              ? "Start building your collection by adding books you want to read!"
+              : "Try selecting a different status or add more books to your collection."}
           </p>
           <button
             onClick={() => navigate("/search")}
-            className="bg-primary1 text-white px-6 py-2 rounded hover:bg-accent transition"
+            className="bg-primary1 text-white px-8 py-3 rounded-lg hover:bg-accent transition font-semibold text-lg shadow-md hover:shadow-lg transform hover:scale-105"
           >
             Browse Books
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
           {filteredBooks.map((bookStatus, index) => {
             const bookId = bookStatus.book?.google_id;
             const details = bookDetails[bookId] || {};
@@ -190,86 +277,141 @@ const MyBooks = () => {
             return (
               <div
                 key={index}
-                className="bg-white rounded-lg shadow p-4 flex flex-col hover:shadow-lg transition"
+                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col group"
               >
                 {/* Book Cover */}
                 <div
-                  className="cursor-pointer mb-3"
+                  className="cursor-pointer relative overflow-hidden"
                   onClick={() => navigate(`/books/${bookId}`)}
                 >
                   {details.coverImage ? (
                     <img
                       src={details.coverImage}
                       alt={details.title}
-                      className="w-full h-64 object-cover rounded"
+                      className="w-full h-72 object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
-                    <div className="w-full h-64 bg-gray-200 rounded flex items-center justify-center text-gray-400">
-                      No Image
+                    <div className="w-full h-72 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+                      <svg
+                        className="w-16 h-16 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                        />
+                      </svg>
                     </div>
                   )}
+                  {/* Favorite Badge */}
+                  {bookStatus.favorite && (
+                    <div className="absolute top-2 right-2 bg-yellow-400 text-white rounded-full p-1.5 shadow-lg">
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    </div>
+                  )}
+                  {/* Status Badge */}
+                  <div className="absolute top-2 left-2">
+                    <span
+                      className={`px-2 py-1 rounded text-xs font-semibold shadow-md ${
+                        bookStatus.status === "Finished"
+                          ? "bg-green-500 text-white"
+                          : bookStatus.status === "Currently Reading"
+                          ? "bg-yellow-500 text-white"
+                          : "bg-blue-500 text-white"
+                      }`}
+                    >
+                      {bookStatus.status}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Book Info */}
-                <h3
-                  className="font-bold text-primary2 mb-1 cursor-pointer hover:text-primary1 transition"
-                  onClick={() => navigate(`/books/${bookId}`)}
-                >
-                  {details.title || "Loading..."}
-                </h3>
-                <p className="text-sm text-gray-600 mb-3">
-                  {details.author || "Loading..."}
-                </p>
-
-                {/* Status Dropdown */}
-                <div className="mb-2">
-                  <label className="block text-xs font-semibold text-primary2 mb-1">
-                    Status:
-                  </label>
-                  <select
-                    value={bookStatus.status}
-                    onChange={(e) => handleStatusChange(bookDbId, e.target.value)}
-                    className="w-full border border-primary1 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary1"
+                <div className="p-4 flex-1 flex flex-col">
+                  <h3
+                    className="font-bold text-primary2 mb-1 cursor-pointer hover:text-primary1 transition line-clamp-2 text-sm"
+                    onClick={() => navigate(`/books/${bookId}`)}
+                    title={details.title || "Loading..."}
                   >
-                    <option value="To-Read">To-Read</option>
-                    <option value="Currently Reading">Currently Reading</option>
-                    <option value="Finished">Finished</option>
-                  </select>
-                </div>
+                    {details.title || "Loading..."}
+                  </h3>
+                  <p className="text-xs text-gray-600 mb-3 line-clamp-1">
+                    {details.author || "Loading..."}
+                  </p>
 
-                {/* Favorite Toggle */}
-                <div className="flex items-center justify-between mb-2">
+                  {/* Status Dropdown */}
+                  <div className="mb-3">
+                    <label className="block text-xs font-semibold text-primary2 mb-1.5">
+                      Status:
+                    </label>
+                    <select
+                      value={bookStatus.status}
+                      onChange={(e) => handleStatusChange(bookDbId, e.target.value)}
+                      className="w-full border-2 border-primary1 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary1 bg-white"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <option value="To-Read">To-Read</option>
+                      <option value="Currently Reading">Currently Reading</option>
+                      <option value="Finished">Finished</option>
+                    </select>
+                  </div>
+
+                  {/* Favorite Toggle */}
+                  <div className="mb-3">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleFavoriteToggle(bookDbId, bookStatus.favorite);
+                      }}
+                      className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition ${
+                        bookStatus.favorite
+                          ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                      aria-label={
+                        bookStatus.favorite
+                          ? "Remove from favorites"
+                          : "Add to favorites"
+                      }
+                    >
+                      <svg
+                        className={`w-4 h-4 ${
+                          bookStatus.favorite ? "fill-current" : "stroke-current"
+                        }`}
+                        fill={bookStatus.favorite ? "currentColor" : "none"}
+                        strokeWidth={bookStatus.favorite ? 0 : 2}
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                        />
+                      </svg>
+                      {bookStatus.favorite ? "Favorited" : "Favorite"}
+                    </button>
+                  </div>
+
+                  {/* Remove Button */}
                   <button
-                    onClick={() =>
-                      handleFavoriteToggle(bookDbId, bookStatus.favorite)
-                    }
-                    className={`flex items-center gap-1 text-sm transition ${
-                      bookStatus.favorite
-                        ? "text-yellow-400"
-                        : "text-gray-400 hover:text-yellow-300"
-                    }`}
-                    aria-label={
-                      bookStatus.favorite
-                        ? "Remove from favorites"
-                        : "Add to favorites"
-                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveBook(bookDbId);
+                    }}
+                    className="w-full bg-red-50 text-red-700 px-3 py-2 rounded-lg text-xs font-semibold hover:bg-red-100 transition border border-red-200"
                   >
-                    <span className="text-xl">
-                      {bookStatus.favorite ? "★" : "☆"}
-                    </span>
-                    <span className="text-xs">
-                      {bookStatus.favorite ? "Favorite" : "Not Favorite"}
-                    </span>
+                    Remove
                   </button>
                 </div>
-
-                {/* Remove Button */}
-                <button
-                  onClick={() => handleRemoveBook(bookDbId)}
-                  className="mt-auto bg-red-100 text-red-700 px-3 py-1 rounded text-sm hover:bg-red-200 transition"
-                >
-                  Remove
-                </button>
               </div>
             );
           })}
