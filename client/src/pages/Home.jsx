@@ -1,13 +1,14 @@
 import Auth from "../utils/auth.js";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "@apollo/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { LOGIN_USER, ADD_USER } from "../utils/mutations.js";
 import { QUERY_USER, QUERY_ACTIVITY_FEED } from "../utils/queries.js";
 import Slider from "react-slick";
 
 export default function Home() {
   const navigate = useNavigate();
+  const location = useLocation();
   const isLoggedIn = Auth.loggedIn();
   const userId = isLoggedIn ? Auth.getProfile()?.data?._id : null;
 
@@ -66,11 +67,26 @@ export default function Home() {
 
   const goToSignUp = () => {
     sliderRef.current?.slickGoTo(1);
+    setCurrentSlide(1);
   };
 
   const goToSignIn = () => {
     sliderRef.current?.slickGoTo(2);
+    setCurrentSlide(2);
   };
+
+  // Check for hash on mount or when location changes to navigate to correct slide
+  useEffect(() => {
+    if (!isLoggedIn && location.hash && sliderRef.current) {
+      if (location.hash === "#signup") {
+        sliderRef.current.slickGoTo(1);
+        setCurrentSlide(1);
+      } else if (location.hash === "#signin") {
+        sliderRef.current.slickGoTo(2);
+        setCurrentSlide(2);
+      }
+    }
+  }, [location.hash, isLoggedIn]);
 
   // update state based on form input changes
   const handleChange = (event) => {

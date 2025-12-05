@@ -385,13 +385,13 @@ function Navbar() {
             <>
               {/* Sign In / Sign Up Buttons */}
               <Link
-                to="/"
+                to="/#signin"
                 className="px-4 py-2 rounded-lg hover:bg-white/10 transition font-medium"
               >
                 Sign In
               </Link>
               <Link
-                to="/"
+                to="/#signup"
                 className="px-4 py-2 rounded-lg bg-primary1 text-white hover:bg-accent transition font-medium"
               >
                 Sign Up
@@ -573,14 +573,14 @@ function Navbar() {
                 </Link>
                 <div className="flex gap-2 pt-2">
                   <Link
-                    to="/"
+                    to="/#signin"
                     onClick={() => setMenuOpen(false)}
                     className="flex-1 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition text-center font-medium"
                   >
                     Sign In
                   </Link>
                   <Link
-                    to="/"
+                    to="/#signup"
                     onClick={() => setMenuOpen(false)}
                     className="flex-1 px-4 py-2 rounded-lg bg-primary1 hover:bg-accent transition text-center font-medium"
                   >
