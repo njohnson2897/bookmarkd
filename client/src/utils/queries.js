@@ -372,4 +372,77 @@ export const QUERY_UNREAD_NOTIFICATION_COUNT = gql`
   }
 `;
 
+export const QUERY_CLUB_INVITATIONS = gql`
+  query ClubInvitations($userId: ID!) {
+    clubInvitations(userId: $userId) {
+      _id
+      club {
+        _id
+        name
+        privacy
+      }
+      inviter {
+        _id
+        username
+      }
+      invitee {
+        _id
+        username
+      }
+      status
+      createdAt
+      respondedAt
+    }
+  }
+`;
+
+export const QUERY_CLUB_JOIN_REQUESTS = gql`
+  query ClubJoinRequests($clubId: ID!) {
+    clubJoinRequests(clubId: $clubId) {
+      _id
+      club {
+        _id
+        name
+      }
+      user {
+        _id
+        username
+      }
+      status
+      message
+      reviewedBy {
+        _id
+        username
+      }
+      createdAt
+      reviewedAt
+    }
+  }
+`;
+
+export const QUERY_MY_CLUB_JOIN_REQUESTS = gql`
+  query MyClubJoinRequests($userId: ID!) {
+    myClubJoinRequests(userId: $userId) {
+      _id
+      club {
+        _id
+        name
+        privacy
+      }
+      user {
+        _id
+        username
+      }
+      status
+      message
+      reviewedBy {
+        _id
+        username
+      }
+      createdAt
+      reviewedAt
+    }
+  }
+`;
+
 

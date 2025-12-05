@@ -86,13 +86,13 @@ export default function Club() {
       return;
     }
 
-    // For private clubs, we'll allow direct join for now (can add request system later)
+    // For private clubs, navigate to detail page where they can request to join
     if (club?.privacy === "private") {
-      if (!window.confirm("This is a private club. Would you like to request to join?")) {
-        return;
-      }
+      navigate(`/clubs/${clubId}`);
+      return;
     }
 
+    // For public clubs, join directly
     try {
       await addClubMember({
         variables: {

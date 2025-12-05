@@ -104,6 +104,27 @@ const typeDefs = `
     createdAt: String!
   }
 
+  type ClubInvitation {
+    _id: ID!
+    club: Club!
+    inviter: User!
+    invitee: User!
+    status: String!
+    createdAt: String!
+    respondedAt: String
+  }
+
+  type ClubJoinRequest {
+    _id: ID!
+    club: Club!
+    user: User!
+    status: String!
+    message: String
+    reviewedBy: User
+    createdAt: String!
+    reviewedAt: String
+  }
+
   type Contact {
     _id: ID!
     name: String!
@@ -165,6 +186,9 @@ const typeDefs = `
     activityFeed(userId: ID!): [Activity]
     notifications(userId: ID!): [Notification]
     unreadNotificationCount(userId: ID!): Int
+    clubInvitations(userId: ID!): [ClubInvitation!]
+    clubJoinRequests(clubId: ID!): [ClubJoinRequest!]
+    myClubJoinRequests(userId: ID!): [ClubJoinRequest!]
   }
 
   type Mutation {
@@ -208,6 +232,14 @@ const typeDefs = `
     lockThread(threadId: ID!): DiscussionThread
     unlockThread(threadId: ID!): DiscussionThread
     deleteThread(threadId: ID!): DiscussionThread
+    inviteClubMember(clubId: ID!, inviteeId: ID!): ClubInvitation
+    acceptClubInvitation(invitationId: ID!): ClubInvitation
+    declineClubInvitation(invitationId: ID!): ClubInvitation
+    cancelClubInvitation(invitationId: ID!): ClubInvitation
+    requestClubJoin(clubId: ID!, userId: ID!, message: String): ClubJoinRequest
+    approveClubJoinRequest(requestId: ID!, reviewerId: ID!): ClubJoinRequest
+    rejectClubJoinRequest(requestId: ID!, reviewerId: ID!): ClubJoinRequest
+    cancelClubJoinRequest(requestId: ID!): ClubJoinRequest
   }
 `;
 

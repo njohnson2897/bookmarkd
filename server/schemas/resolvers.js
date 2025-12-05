@@ -1,4 +1,4 @@
-import { User, Book, Club, Review, Contact, Like, Comment, Follow, Notification, DiscussionThread } from '../models/index.js';
+import { User, Book, Club, Review, Contact, Like, Comment, Follow, Notification, DiscussionThread, ClubInvitation, ClubJoinRequest } from '../models/index.js';
 import { AuthenticationError, AuthorizationError, signToken, requireAuth, requireAuthAndMatch, requireAuthAndMatchOptional } from '../utils/auth.js';
 
 const resolvers = {
@@ -172,6 +172,47 @@ const resolvers = {
       return DiscussionThread.find(query)
         .populate(['club', 'book', 'author', 'replies.user'])
         .sort({ isPinned: -1, createdAt: -1 });
+    },
+    clubInvitations: async (parent, { userId }, context) => {
+      requireAuth(context);
+      if (context.user._id.toString() !== userId.toString()) {
+        throw AuthorizationError;
+      }
+      
+      return ClubInvitation.find({ invitee: userId, status: 'pending' })
+        .populate(['club', 'inviter'])
+        .sort({ createdAt: -1 });
+    },
+    clubJoinRequests: async (parent, { clubId }, context) => {
+      requireAuth(context);
+      
+      const club = await Club.findById(clubId);
+      if (!club) {
+        throw new Error('Club not found');
+      }
+      
+      // Only owner or moderators can view join requests
+      const userId = context.user._id.toString();
+      const isOwner = club.owner.toString() === userId;
+      const isModerator = club.moderators?.some(m => m.toString() === userId);
+      
+      if (!isOwner && !isModerator) {
+        throw AuthorizationError;
+      }
+      
+      return ClubJoinRequest.find({ club: clubId, status: 'pending' })
+        .populate(['club', 'user', 'reviewedBy'])
+        .sort({ createdAt: -1 });
+    },
+    myClubJoinRequests: async (parent, { userId }, context) => {
+      requireAuth(context);
+      if (context.user._id.toString() !== userId.toString()) {
+        throw AuthorizationError;
+      }
+      
+      return ClubJoinRequest.find({ user: userId })
+        .populate(['club', 'user', 'reviewedBy'])
+        .sort({ createdAt: -1 });
     },
     activityFeed: async (parent, { userId }, context) => {
       // User must be authenticated to see activity feed
@@ -1020,6 +1061,320 @@ const resolvers = {
       await DiscussionThread.findByIdAndDelete(threadId);
       return thread;
     },
+    inviteClubMember: async (parent, { clubId, inviteeId }, context) => {
+      requireAuth(context);
+      
+      const club = await Club.findById(clubId);
+      if (!club) {
+        throw new Error('Club not found');
+      }
+      
+      // Only owner or moderators can invite members
+      const userId = context.user._id.toString();
+      const isOwner = club.owner.toString() === userId;
+      const isModerator = club.moderators?.some(m => m.toString() === userId);
+      
+      if (!isOwner && !isModerator) {
+        throw AuthorizationError;
+      }
+      
+      // Check if user is already a member
+      const isAlreadyMember = club.members?.some(m => m.toString() === inviteeId) || 
+                             club.owner.toString() === inviteeId;
+      if (isAlreadyMember) {
+        throw new Error('User is already a member of this club');
+      }
+      
+      // Check if there's already a pending invitation
+      const existingInvitation = await ClubInvitation.findOne({
+        club: clubId,
+        invitee: inviteeId,
+        status: 'pending'
+      });
+      
+      if (existingInvitation) {
+        throw new Error('An invitation has already been sent to this user');
+      }
+      
+      const invitation = await ClubInvitation.create({
+        club: clubId,
+        inviter: userId,
+        invitee: inviteeId,
+        status: 'pending',
+      });
+      
+      // Create notification for invitee
+      await Notification.create({
+        user: inviteeId,
+        type: 'club_invite',
+        fromUser: userId,
+        club: clubId,
+        read: false,
+      });
+      
+      return ClubInvitation.findById(invitation._id)
+        .populate(['club', 'inviter', 'invitee']);
+    },
+    acceptClubInvitation: async (parent, { invitationId }, context) => {
+      requireAuth(context);
+      
+      const invitation = await ClubInvitation.findById(invitationId)
+        .populate('club');
+      if (!invitation) {
+        throw new Error('Invitation not found');
+      }
+      
+      // Only the invitee can accept
+      if (context.user._id.toString() !== invitation.invitee.toString()) {
+        throw AuthorizationError;
+      }
+      
+      if (invitation.status !== 'pending') {
+        throw new Error('Invitation is no longer pending');
+      }
+      
+      const club = invitation.club;
+      
+      // Check if user is already a member
+      const isAlreadyMember = club.members?.some(m => m.toString() === invitation.invitee.toString()) || 
+                             club.owner.toString() === invitation.invitee.toString();
+      if (isAlreadyMember) {
+        // Mark invitation as accepted anyway
+        invitation.status = 'accepted';
+        invitation.respondedAt = new Date();
+        await invitation.save();
+        return invitation.populate(['club', 'inviter', 'invitee']);
+      }
+      
+      // Add user to club
+      await Club.findByIdAndUpdate(
+        club._id,
+        { $addToSet: { members: invitation.invitee } }
+      );
+      
+      await User.findOneAndUpdate(
+        { _id: invitation.invitee },
+        { $addToSet: { clubs: club._id } }
+      );
+      
+      invitation.status = 'accepted';
+      invitation.respondedAt = new Date();
+      await invitation.save();
+      
+      return invitation.populate(['club', 'inviter', 'invitee']);
+    },
+    declineClubInvitation: async (parent, { invitationId }, context) => {
+      requireAuth(context);
+      
+      const invitation = await ClubInvitation.findById(invitationId);
+      if (!invitation) {
+        throw new Error('Invitation not found');
+      }
+      
+      // Only the invitee can decline
+      if (context.user._id.toString() !== invitation.invitee.toString()) {
+        throw AuthorizationError;
+      }
+      
+      if (invitation.status !== 'pending') {
+        throw new Error('Invitation is no longer pending');
+      }
+      
+      invitation.status = 'declined';
+      invitation.respondedAt = new Date();
+      await invitation.save();
+      
+      return invitation.populate(['club', 'inviter', 'invitee']);
+    },
+    cancelClubInvitation: async (parent, { invitationId }, context) => {
+      requireAuth(context);
+      
+      const invitation = await ClubInvitation.findById(invitationId)
+        .populate('club');
+      if (!invitation) {
+        throw new Error('Invitation not found');
+      }
+      
+      const club = invitation.club;
+      const userId = context.user._id.toString();
+      const isOwner = club.owner.toString() === userId;
+      const isModerator = club.moderators?.some(m => m.toString() === userId);
+      
+      // Only inviter, owner, or moderator can cancel
+      if (invitation.inviter.toString() !== userId && !isOwner && !isModerator) {
+        throw AuthorizationError;
+      }
+      
+      if (invitation.status !== 'pending') {
+        throw new Error('Invitation is no longer pending');
+      }
+      
+      invitation.status = 'cancelled';
+      invitation.respondedAt = new Date();
+      await invitation.save();
+      
+      return invitation.populate(['club', 'inviter', 'invitee']);
+    },
+    requestClubJoin: async (parent, { clubId, userId, message }, context) => {
+      requireAuthAndMatch(context, userId);
+      
+      const club = await Club.findById(clubId);
+      if (!club) {
+        throw new Error('Club not found');
+      }
+      
+      // Can only request to join private clubs
+      if (club.privacy !== 'private') {
+        throw new Error('This club does not require join requests');
+      }
+      
+      // Check if user is already a member
+      const isAlreadyMember = club.members?.some(m => m.toString() === userId) || 
+                             club.owner.toString() === userId;
+      if (isAlreadyMember) {
+        throw new Error('You are already a member of this club');
+      }
+      
+      // Check if there's already a pending request
+      const existingRequest = await ClubJoinRequest.findOne({
+        club: clubId,
+        user: userId,
+        status: 'pending'
+      });
+      
+      if (existingRequest) {
+        throw new Error('You already have a pending join request for this club');
+      }
+      
+      const request = await ClubJoinRequest.create({
+        club: clubId,
+        user: userId,
+        status: 'pending',
+        message: message || null,
+      });
+      
+      // Create notifications for owner and moderators
+      const notifyUsers = [
+        club.owner.toString(),
+        ...(club.moderators || []).map(m => m.toString())
+      ];
+      
+      const notifications = notifyUsers.map(notifyUserId => ({
+        user: notifyUserId,
+        type: 'join_request',
+        fromUser: userId,
+        club: clubId,
+        read: false,
+      }));
+      
+      await Notification.insertMany(notifications);
+      
+      return ClubJoinRequest.findById(request._id)
+        .populate(['club', 'user', 'reviewedBy']);
+    },
+    approveClubJoinRequest: async (parent, { requestId, reviewerId }, context) => {
+      requireAuthAndMatch(context, reviewerId);
+      
+      const request = await ClubJoinRequest.findById(requestId)
+        .populate('club');
+      if (!request) {
+        throw new Error('Join request not found');
+      }
+      
+      if (request.status !== 'pending') {
+        throw new Error('Request is no longer pending');
+      }
+      
+      const club = request.club;
+      const userId = context.user._id.toString();
+      const isOwner = club.owner.toString() === userId;
+      const isModerator = club.moderators?.some(m => m.toString() === userId);
+      
+      // Only owner or moderators can approve
+      if (!isOwner && !isModerator) {
+        throw AuthorizationError;
+      }
+      
+      // Add user to club
+      await Club.findByIdAndUpdate(
+        club._id,
+        { $addToSet: { members: request.user } }
+      );
+      
+      await User.findOneAndUpdate(
+        { _id: request.user },
+        { $addToSet: { clubs: club._id } }
+      );
+      
+      request.status = 'approved';
+      request.reviewedBy = reviewerId;
+      request.reviewedAt = new Date();
+      await request.save();
+      
+      // Create notification for the user who requested
+      await Notification.create({
+        user: request.user,
+        type: 'join_request_approved',
+        fromUser: reviewerId,
+        club: club._id,
+        read: false,
+      });
+      
+      return request.populate(['club', 'user', 'reviewedBy']);
+    },
+    rejectClubJoinRequest: async (parent, { requestId, reviewerId }, context) => {
+      requireAuthAndMatch(context, reviewerId);
+      
+      const request = await ClubJoinRequest.findById(requestId)
+        .populate('club');
+      if (!request) {
+        throw new Error('Join request not found');
+      }
+      
+      if (request.status !== 'pending') {
+        throw new Error('Request is no longer pending');
+      }
+      
+      const club = request.club;
+      const userId = context.user._id.toString();
+      const isOwner = club.owner.toString() === userId;
+      const isModerator = club.moderators?.some(m => m.toString() === userId);
+      
+      // Only owner or moderators can reject
+      if (!isOwner && !isModerator) {
+        throw AuthorizationError;
+      }
+      
+      request.status = 'rejected';
+      request.reviewedBy = reviewerId;
+      request.reviewedAt = new Date();
+      await request.save();
+      
+      return request.populate(['club', 'user', 'reviewedBy']);
+    },
+    cancelClubJoinRequest: async (parent, { requestId }, context) => {
+      requireAuth(context);
+      
+      const request = await ClubJoinRequest.findById(requestId);
+      if (!request) {
+        throw new Error('Join request not found');
+      }
+      
+      // Only the requester can cancel
+      if (context.user._id.toString() !== request.user.toString()) {
+        throw AuthorizationError;
+      }
+      
+      if (request.status !== 'pending') {
+        throw new Error('Request is no longer pending');
+      }
+      
+      request.status = 'cancelled';
+      request.reviewedAt = new Date();
+      await request.save();
+      
+      return request.populate(['club', 'user', 'reviewedBy']);
+    },
     removeUserBook: async (parent, { bookId, userId }, context) => {
       // User must be authenticated and can only remove books from their own collection
       requireAuthAndMatch(context, userId);
@@ -1354,6 +1709,26 @@ const resolvers = {
   ReadingCheckpoint: {
     date: (parent) => {
       return parent.date ? parent.date.toISOString() : null;
+    },
+  },
+  
+  // Field resolvers for ClubInvitation
+  ClubInvitation: {
+    createdAt: (parent) => {
+      return parent.createdAt ? parent.createdAt.toISOString() : null;
+    },
+    respondedAt: (parent) => {
+      return parent.respondedAt ? parent.respondedAt.toISOString() : null;
+    },
+  },
+  
+  // Field resolvers for ClubJoinRequest
+  ClubJoinRequest: {
+    createdAt: (parent) => {
+      return parent.createdAt ? parent.createdAt.toISOString() : null;
+    },
+    reviewedAt: (parent) => {
+      return parent.reviewedAt ? parent.reviewedAt.toISOString() : null;
     },
   },
 };

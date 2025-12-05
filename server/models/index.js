@@ -8,7 +8,9 @@ import Comment from './Comment.js';
 import Follow from './Follow.js';
 import Notification from './Notification.js';
 import DiscussionThread from './DiscussionThread.js';
+import ClubInvitation from './ClubInvitation.js';
+import ClubJoinRequest from './ClubJoinRequest.js';
 
-export { User, Book, Review, Club, Contact, Like, Comment, Follow, Notification, DiscussionThread };
+export { User, Book, Review, Club, Contact, Like, Comment, Follow, Notification, DiscussionThread, ClubInvitation, ClubJoinRequest };
 
 

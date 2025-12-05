@@ -325,6 +325,117 @@ export const DELETE_NOTIFICATION = gql`
   }
 `;
 
+// Club Invitation Mutations
+export const INVITE_CLUB_MEMBER = gql`
+  mutation InviteClubMember($clubId: ID!, $inviteeId: ID!) {
+    inviteClubMember(clubId: $clubId, inviteeId: $inviteeId) {
+      _id
+      club {
+        _id
+        name
+      }
+      inviter {
+        _id
+        username
+      }
+      invitee {
+        _id
+        username
+      }
+      status
+      createdAt
+    }
+  }
+`;
+
+export const ACCEPT_CLUB_INVITATION = gql`
+  mutation AcceptClubInvitation($invitationId: ID!) {
+    acceptClubInvitation(invitationId: $invitationId) {
+      _id
+      status
+      respondedAt
+    }
+  }
+`;
+
+export const DECLINE_CLUB_INVITATION = gql`
+  mutation DeclineClubInvitation($invitationId: ID!) {
+    declineClubInvitation(invitationId: $invitationId) {
+      _id
+      status
+      respondedAt
+    }
+  }
+`;
+
+export const CANCEL_CLUB_INVITATION = gql`
+  mutation CancelClubInvitation($invitationId: ID!) {
+    cancelClubInvitation(invitationId: $invitationId) {
+      _id
+      status
+      respondedAt
+    }
+  }
+`;
+
+// Club Join Request Mutations
+export const REQUEST_CLUB_JOIN = gql`
+  mutation RequestClubJoin($clubId: ID!, $userId: ID!, $message: String) {
+    requestClubJoin(clubId: $clubId, userId: $userId, message: $message) {
+      _id
+      club {
+        _id
+        name
+      }
+      user {
+        _id
+        username
+      }
+      status
+      message
+      createdAt
+    }
+  }
+`;
+
+export const APPROVE_CLUB_JOIN_REQUEST = gql`
+  mutation ApproveClubJoinRequest($requestId: ID!, $reviewerId: ID!) {
+    approveClubJoinRequest(requestId: $requestId, reviewerId: $reviewerId) {
+      _id
+      status
+      reviewedBy {
+        _id
+        username
+      }
+      reviewedAt
+    }
+  }
+`;
+
+export const REJECT_CLUB_JOIN_REQUEST = gql`
+  mutation RejectClubJoinRequest($requestId: ID!, $reviewerId: ID!) {
+    rejectClubJoinRequest(requestId: $requestId, reviewerId: $reviewerId) {
+      _id
+      status
+      reviewedBy {
+        _id
+        username
+      }
+      reviewedAt
+    }
+  }
+`;
+
+export const CANCEL_CLUB_JOIN_REQUEST = gql`
+  mutation CancelClubJoinRequest($requestId: ID!) {
+    cancelClubJoinRequest(requestId: $requestId) {
+      _id
+      status
+      reviewedAt
+    }
+  }
+`;
+
 // Club Management Mutations
 export const UPDATE_CLUB = gql`
   mutation UpdateClub($clubId: ID!, $name: String, $description: String, $privacy: String, $memberLimit: Int) {

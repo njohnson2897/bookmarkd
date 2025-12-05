@@ -128,6 +128,12 @@ const NotificationBell = () => {
         return `${username} started following you`;
       case "review":
         return `${username} posted a new review`;
+      case "club_invite":
+        return `${username} invited you to join ${clubName}`;
+      case "join_request":
+        return `${username} requested to join ${clubName}`;
+      case "join_request_approved":
+        return `Your request to join ${clubName} was approved`;
       case "book_assigned":
         return `${username} assigned a new book to ${clubName}`;
       case "book_rotated":

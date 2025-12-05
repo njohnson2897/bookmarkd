@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { useParams, useNavigate } from "react-router-dom";
-import { QUERY_CLUB, QUERY_CLUB_THREADS } from "../utils/queries.js";
+import {
+  QUERY_CLUB,
+  QUERY_CLUB_THREADS,
+  QUERY_USERS,
+} from "../utils/queries.js";
 import {
   ADD_CLUB_MEMBER,
   REMOVE_CLUB_MEMBER,
@@ -12,7 +16,16 @@ import {
   ADD_READING_CHECKPOINT,
   UPDATE_READING_CHECKPOINT,
   UPDATE_CLUB,
+  REQUEST_CLUB_JOIN,
+  APPROVE_CLUB_JOIN_REQUEST,
+  REJECT_CLUB_JOIN_REQUEST,
+  CANCEL_CLUB_JOIN_REQUEST,
+  INVITE_CLUB_MEMBER,
 } from "../utils/mutations.js";
+import {
+  QUERY_CLUB_JOIN_REQUESTS,
+  QUERY_MY_CLUB_JOIN_REQUESTS,
+} from "../utils/queries.js";
 import Auth from "../utils/auth.js";
 import DiscussionThread from "../components/DiscussionThread.jsx";
 
@@ -24,6 +37,10 @@ const ClubDetail = () => {
   const [showAssignBookModal, setShowAssignBookModal] = useState(false);
   const [showCreateThreadModal, setShowCreateThreadModal] = useState(false);
   const [showCheckpointModal, setShowCheckpointModal] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [inviteUsername, setInviteUsername] = useState("");
+  const [requestMessage, setRequestMessage] = useState("");
   const [selectedBookGoogleId, setSelectedBookGoogleId] = useState("");
   const [bookSearchQuery, setBookSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -46,6 +63,13 @@ const ClubDetail = () => {
     skip: !clubId,
   });
 
+  // Calculate these early so they can be used in query skip conditions
+  const club = data?.club;
+  const isOwner = club?.isOwner || false;
+  const isModerator = club?.isModerator || false;
+  const isMember = club?.isMember || false;
+  const canManage = isOwner || isModerator;
+
   const { data: threadsData, refetch: refetchThreads } = useQuery(
     QUERY_CLUB_THREADS,
     {
@@ -54,6 +78,22 @@ const ClubDetail = () => {
         bookGoogleId: data?.club?.currentBookGoogleId || null,
       },
       skip: !clubId || !data?.club,
+    }
+  );
+
+  const { data: joinRequestsData, refetch: refetchJoinRequests } = useQuery(
+    QUERY_CLUB_JOIN_REQUESTS,
+    {
+      variables: { clubId },
+      skip: !clubId || !data?.club || !canManage,
+    }
+  );
+
+  const { data: myRequestsData, refetch: refetchMyRequests } = useQuery(
+    QUERY_MY_CLUB_JOIN_REQUESTS,
+    {
+      variables: { userId },
+      skip: !userId,
     }
   );
 
@@ -66,16 +106,35 @@ const ClubDetail = () => {
   const [addReadingCheckpoint] = useMutation(ADD_READING_CHECKPOINT);
   const [updateReadingCheckpoint] = useMutation(UPDATE_READING_CHECKPOINT);
   const [updateClub] = useMutation(UPDATE_CLUB);
+  const [requestClubJoin] = useMutation(REQUEST_CLUB_JOIN);
+  const [approveJoinRequest] = useMutation(APPROVE_CLUB_JOIN_REQUEST);
+  const [rejectJoinRequest] = useMutation(REJECT_CLUB_JOIN_REQUEST);
+  const [cancelJoinRequest] = useMutation(CANCEL_CLUB_JOIN_REQUEST);
+  const [inviteClubMember] = useMutation(INVITE_CLUB_MEMBER);
 
-  const club = data?.club;
   const threads = threadsData?.clubThreads || [];
-  const isOwner = club?.isOwner || false;
-  const isModerator = club?.isModerator || false;
-  const isMember = club?.isMember || false;
-  // Can join if: logged in, not owner, not member, and club is not invite-only (unless already member)
+  const joinRequests = joinRequestsData?.clubJoinRequests || [];
+  const myRequests = myRequestsData?.myClubJoinRequests || [];
+
+  // Check if user has a pending request for this club
+  const hasPendingRequest = myRequests.some(
+    (req) => req.club._id === clubId && req.status === "pending"
+  );
+
+  // Can join if: logged in, not owner, not member, public club, and no pending request
   const canJoin =
-    !isOwner && !isMember && Auth.loggedIn() && club?.privacy !== "invite-only";
-  const canManage = isOwner || isModerator;
+    !isOwner &&
+    !isMember &&
+    Auth.loggedIn() &&
+    club?.privacy === "public" &&
+    !hasPendingRequest;
+  // Can request to join if: logged in, not owner, not member, private club, and no pending request
+  const canRequestJoin =
+    !isOwner &&
+    !isMember &&
+    Auth.loggedIn() &&
+    club?.privacy === "private" &&
+    !hasPendingRequest;
 
   // Fetch book details for current book
   const [currentBookDetails, setCurrentBookDetails] = useState(null);
@@ -117,25 +176,6 @@ const ClubDetail = () => {
       return;
     }
 
-    // Check privacy settings
-    if (club.privacy === "invite-only") {
-      alert(
-        "This club is invite-only. You must be invited by a member to join."
-      );
-      return;
-    }
-
-    // For private clubs, we'll allow direct join for now (can add request system later)
-    if (club.privacy === "private") {
-      if (
-        !window.confirm(
-          "This is a private club. Would you like to request to join?"
-        )
-      ) {
-        return;
-      }
-    }
-
     try {
       await addClubMember({
         variables: {
@@ -144,9 +184,127 @@ const ClubDetail = () => {
         },
       });
       await refetch();
+      await refetchMyRequests();
     } catch (error) {
       console.error("Error joining club:", error);
       alert("Error joining club. Please try again.");
+    }
+  };
+
+  const handleRequestJoin = async (e) => {
+    e.preventDefault();
+    if (!userId) {
+      alert("Please sign in to request to join a club.");
+      navigate("/");
+      return;
+    }
+
+    try {
+      await requestClubJoin({
+        variables: {
+          clubId,
+          userId,
+          message: requestMessage.trim() || null,
+        },
+      });
+      setShowRequestModal(false);
+      setRequestMessage("");
+      await refetchMyRequests();
+      if (canManage) {
+        await refetchJoinRequests();
+      }
+      alert("Join request submitted! The club owner will review your request.");
+    } catch (error) {
+      console.error("Error requesting to join:", error);
+      alert(
+        error.message || "Error submitting join request. Please try again."
+      );
+    }
+  };
+
+  const handleApproveRequest = async (requestId) => {
+    try {
+      await approveJoinRequest({
+        variables: {
+          requestId,
+          reviewerId: userId,
+        },
+      });
+      await refetch();
+      await refetchJoinRequests();
+    } catch (error) {
+      console.error("Error approving request:", error);
+      alert("Error approving join request. Please try again.");
+    }
+  };
+
+  const handleRejectRequest = async (requestId) => {
+    if (!window.confirm("Are you sure you want to reject this join request?")) {
+      return;
+    }
+
+    try {
+      await rejectJoinRequest({
+        variables: {
+          requestId,
+          reviewerId: userId,
+        },
+      });
+      await refetchJoinRequests();
+    } catch (error) {
+      console.error("Error rejecting request:", error);
+      alert("Error rejecting join request. Please try again.");
+    }
+  };
+
+  const handleCancelRequest = async (requestId) => {
+    try {
+      await cancelJoinRequest({
+        variables: {
+          requestId,
+        },
+      });
+      await refetchMyRequests();
+    } catch (error) {
+      console.error("Error cancelling request:", error);
+      alert("Error cancelling join request. Please try again.");
+    }
+  };
+
+  const { data: usersData } = useQuery(QUERY_USERS, {
+    skip: !showInviteModal, // Only fetch when modal is open
+  });
+
+  const handleInviteMember = async (e) => {
+    e.preventDefault();
+    if (!inviteUsername.trim()) {
+      alert("Please enter a username.");
+      return;
+    }
+
+    try {
+      const users = usersData?.users || [];
+      const invitee = users.find(
+        (u) => u.username.toLowerCase() === inviteUsername.trim().toLowerCase()
+      );
+
+      if (!invitee) {
+        alert("User not found. Please check the username and try again.");
+        return;
+      }
+
+      await inviteClubMember({
+        variables: {
+          clubId,
+          inviteeId: invitee._id,
+        },
+      });
+      setShowInviteModal(false);
+      setInviteUsername("");
+      alert(`Invitation sent to ${invitee.username}!`);
+    } catch (error) {
+      console.error("Error inviting member:", error);
+      alert(error.message || "Error inviting member. Please try again.");
     }
   };
 
@@ -492,13 +650,45 @@ const ClubDetail = () => {
               </div>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {canJoin && (
               <button
                 onClick={handleJoinClub}
                 className="bg-white text-primary2 px-6 py-3 rounded-lg hover:bg-gray-100 transition font-semibold"
               >
                 Join Club
+              </button>
+            )}
+            {canRequestJoin && (
+              <button
+                onClick={() => setShowRequestModal(true)}
+                className="bg-white text-primary2 px-6 py-3 rounded-lg hover:bg-gray-100 transition font-semibold"
+              >
+                Request to Join
+              </button>
+            )}
+            {hasPendingRequest && (
+              <div className="bg-yellow-500 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2">
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Request Pending
+              </div>
+            )}
+            {canManage && (
+              <button
+                onClick={() => setShowInviteModal(true)}
+                className="bg-white text-primary2 px-6 py-3 rounded-lg hover:bg-gray-100 transition font-semibold"
+              >
+                Invite Member
               </button>
             )}
             {isMember && !isOwner && (
@@ -760,6 +950,16 @@ const ClubDetail = () => {
               </div>
               <div className="text-xs text-gray-600 mt-1">Threads</div>
             </div>
+            {canManage && joinRequests.length > 0 && (
+              <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg shadow-md p-4 text-center col-span-2">
+                <div className="text-2xl font-bold text-yellow-700">
+                  {joinRequests.length}
+                </div>
+                <div className="text-xs text-yellow-600 mt-1">
+                  Pending Requests
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Members Section */}
@@ -841,6 +1041,69 @@ const ClubDetail = () => {
                 </p>
               )}
             </div>
+
+            {/* Join Requests (for owners/moderators) */}
+            {canManage && (
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h4 className="text-xs font-semibold text-gray-600 mb-3 uppercase">
+                  Join Requests{" "}
+                  {joinRequests.length > 0 && `(${joinRequests.length})`}
+                </h4>
+                {joinRequests.length > 0 ? (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {joinRequests.map((request) => (
+                      <div
+                        key={request._id}
+                        className="border border-gray-200 rounded-lg p-3 hover:border-primary1 transition"
+                      >
+                        <div className="flex items-start gap-2 mb-2">
+                          <div className="w-8 h-8 rounded-full bg-primary2 text-white flex items-center justify-center text-xs font-semibold flex-shrink-0">
+                            {request.user?.username?.charAt(0).toUpperCase() ||
+                              "?"}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <button
+                              onClick={() =>
+                                navigate(`/profile/${request.user?._id}`)
+                              }
+                              className="font-semibold text-sm text-primary2 hover:text-primary1 transition text-left block truncate"
+                            >
+                              {request.user?.username || "Unknown"}
+                            </button>
+                            {request.message && (
+                              <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                                "{request.message}"
+                              </p>
+                            )}
+                            <p className="text-xs text-gray-500 mt-1">
+                              {new Date(request.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 mt-2">
+                          <button
+                            onClick={() => handleApproveRequest(request._id)}
+                            className="flex-1 bg-green-500 text-white px-3 py-1.5 rounded-lg hover:bg-green-600 transition font-semibold text-xs"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleRejectRequest(request._id)}
+                            className="flex-1 bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition font-semibold text-xs"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500 text-center py-3">
+                    No pending requests
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1169,6 +1432,154 @@ const ClubDetail = () => {
                     onClick={() => {
                       setShowCheckpointModal(false);
                       setCheckpointForm({ title: "", date: "", chapters: "" });
+                    }}
+                    className="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition font-semibold"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Request to Join Modal */}
+      {showRequestModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-2xl font-bold text-primary2">
+                  Request to Join Club
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowRequestModal(false);
+                    setRequestMessage("");
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <form onSubmit={handleRequestJoin} className="space-y-4">
+                <div>
+                  <label className="block font-semibold text-primary2 mb-2">
+                    Message (optional)
+                  </label>
+                  <textarea
+                    value={requestMessage}
+                    onChange={(e) => setRequestMessage(e.target.value)}
+                    placeholder="Tell the club owner why you'd like to join..."
+                    rows="4"
+                    className="w-full border-2 border-primary1 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary1"
+                    maxLength={500}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {requestMessage.length}/500 characters
+                  </p>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-primary1 text-white px-6 py-3 rounded-lg hover:bg-accent transition font-semibold"
+                  >
+                    Submit Request
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowRequestModal(false);
+                      setRequestMessage("");
+                    }}
+                    className="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition font-semibold"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Invite Member Modal */}
+      {showInviteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-2xl font-bold text-primary2">
+                  Invite Member
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowInviteModal(false);
+                    setInviteUsername("");
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <form onSubmit={handleInviteMember} className="space-y-4">
+                <div>
+                  <label className="block font-semibold text-primary2 mb-2">
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    value={inviteUsername}
+                    onChange={(e) => setInviteUsername(e.target.value)}
+                    placeholder="Enter username..."
+                    className="w-full border-2 border-primary1 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary1"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Enter the username of the person you want to invite
+                  </p>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-primary1 text-white px-6 py-3 rounded-lg hover:bg-accent transition font-semibold"
+                  >
+                    Send Invitation
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowInviteModal(false);
+                      setInviteUsername("");
                     }}
                     className="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition font-semibold"
                   >
