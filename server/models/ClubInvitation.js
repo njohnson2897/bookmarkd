@@ -38,3 +38,4 @@ const ClubInvitation = model('ClubInvitation', clubInvitationSchema);
 
 export default ClubInvitation;
 
+
