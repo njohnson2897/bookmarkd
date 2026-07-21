@@ -36,11 +36,13 @@ const startApolloServer = async () => {
   
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
-  app.use(cors());
   
-  app.use('/graphql', expressMiddleware(server, {
-    context: authMiddleware
-  }));
+app.use('/graphql', cors({
+  origin: ['https://bookmarkd-live.vercel.app', 'http://localhost:5173'],
+  credentials: true,
+}), expressMiddleware(server, {
+  context: authMiddleware
+}));
 
   // // Serve static files from the React app in production
   // if (process.env.NODE_ENV === 'production') {
