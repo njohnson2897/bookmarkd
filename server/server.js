@@ -9,15 +9,25 @@ import dotenv from 'dotenv';
 import { typeDefs, resolvers } from './schemas/index.js';
 import db from './config/connection.js';
 import { authMiddleware } from './utils/auth.js';
-
-// Load environment variables
-dotenv.config();
+import booksRouter from './routes/books.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Always load server/.env, even when started from repo root
+dotenv.config({ path: path.join(__dirname, '.env') });
+
 const PORT = process.env.PORT || 3001;
 const app = express();
+
+const corsOptions = {
+  origin: [
+    'https://bookmarkd-live.vercel.app',
+    'http://localhost:5173',
+    'http://localhost:3000',
+  ],
+  credentials: true,
+};
 
 const server = new ApolloServer({
   typeDefs,
@@ -36,13 +46,12 @@ const startApolloServer = async () => {
   
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
-  
-app.use('/graphql', cors({
-  origin: ['https://bookmarkd-live.vercel.app', 'http://localhost:5173'],
-  credentials: true,
-}), expressMiddleware(server, {
-  context: authMiddleware
-}));
+
+  app.use('/api/books', cors(corsOptions), booksRouter);
+
+  app.use('/graphql', cors(corsOptions), expressMiddleware(server, {
+    context: authMiddleware
+  }));
 
   // // Serve static files from the React app in production
   // if (process.env.NODE_ENV === 'production') {
