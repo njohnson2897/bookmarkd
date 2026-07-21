@@ -27,6 +27,10 @@ import {
   QUERY_MY_CLUB_JOIN_REQUESTS,
 } from "../utils/queries.js";
 import Auth from "../utils/auth.js";
+import {
+  fetchBookVolume,
+  searchBookVolumes,
+} from "../utils/googleBooks.js";
 import DiscussionThread from "../components/DiscussionThread.jsx";
 
 const ClubDetail = () => {
@@ -143,9 +147,7 @@ const ClubDetail = () => {
     const fetchBookDetails = async () => {
       if (club?.currentBookGoogleId) {
         try {
-          const response = await fetch(
-            `https://www.googleapis.com/books/v1/volumes/${club.currentBookGoogleId}`
-          );
+          const response = await fetchBookVolume(club.currentBookGoogleId);
           if (response.ok) {
             const bookData = await response.json();
             setCurrentBookDetails({
@@ -359,11 +361,7 @@ const ClubDetail = () => {
 
     setSearching(true);
     try {
-      const response = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
-          bookSearchQuery
-        )}&maxResults=10`
-      );
+      const response = await searchBookVolumes(bookSearchQuery, 10);
       if (response.ok) {
         const data = await response.json();
         setSearchResults(
@@ -391,9 +389,7 @@ const ClubDetail = () => {
 
     try {
       // First ensure book exists in our database by checking Google Books API
-      const bookResponse = await fetch(
-        `https://www.googleapis.com/books/v1/volumes/${bookGoogleId}`
-      );
+      const bookResponse = await fetchBookVolume(bookGoogleId);
       if (!bookResponse.ok) {
         throw new Error("Book not found");
       }

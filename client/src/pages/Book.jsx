@@ -16,6 +16,7 @@ import {
   EDIT_USER_BOOK_FAVORITE,
 } from "../utils/mutations.js";
 import Auth from "../utils/auth.js";
+import { fetchBookVolume } from "../utils/googleBooks.js";
 
 // Helper function to strip HTML tags from text
 const stripHtmlTags = (html) => {
@@ -78,8 +79,7 @@ const Book = () => {
   useEffect(() => {
     const fetchBook = async () => {
       try {
-        const url = `https://www.googleapis.com/books/v1/volumes/${bookId}`;
-        const response = await fetch(url);
+        const response = await fetchBookVolume(bookId);
 
         if (!response.ok) {
           throw new Error("Network response was not ok");

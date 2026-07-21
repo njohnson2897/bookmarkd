@@ -3,6 +3,7 @@ import { useQuery } from "@apollo/client";
 import { useNavigate } from "react-router-dom";
 import { QUERY_ACTIVITY_FEED } from "../utils/queries.js";
 import Auth from "../utils/auth.js";
+import { fetchBookVolume } from "../utils/googleBooks.js";
 
 const ActivityFeed = () => {
   const navigate = useNavigate();
@@ -25,9 +26,7 @@ const ActivityFeed = () => {
           const googleId = activity.review.book.google_id;
           if (!details[googleId]) {
             try {
-              const response = await fetch(
-                `https://www.googleapis.com/books/v1/volumes/${googleId}`
-              );
+              const response = await fetchBookVolume(googleId);
               if (response.ok) {
                 const bookData = await response.json();
                 details[googleId] = {

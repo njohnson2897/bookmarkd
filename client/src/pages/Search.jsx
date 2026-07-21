@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { searchBookVolumes } from "../utils/googleBooks.js";
 
 function Search() {
   const [searchedBook, setSearchedBook] = useState([]);
@@ -27,11 +28,7 @@ function Search() {
     setHasSearched(true);
 
     try {
-      let url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
-        bookTitle
-      )}&maxResults=40`;
-
-      const response = await fetch(url);
+      const response = await searchBookVolumes(bookTitle, 40);
 
       if (!response.ok) {
         throw new Error("Network response was not ok");

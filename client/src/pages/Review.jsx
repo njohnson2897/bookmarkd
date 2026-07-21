@@ -11,6 +11,7 @@ import {
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Auth from "../utils/auth.js";
+import { fetchBookVolume } from "../utils/googleBooks.js";
 
 const ReviewsPage = () => {
   const { loading, data, error, refetch } = useQuery(QUERY_REVIEWS);
@@ -35,9 +36,7 @@ const ReviewsPage = () => {
           if (!review.book?.google_id) return null;
 
           try {
-            const response = await fetch(
-              `https://www.googleapis.com/books/v1/volumes/${review.book.google_id}`
-            );
+            const response = await fetchBookVolume(review.book.google_id);
             if (!response.ok) return null;
 
             const bookData = await response.json();

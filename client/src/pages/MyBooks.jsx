@@ -8,6 +8,7 @@ import {
   REMOVE_USER_BOOK,
 } from "../utils/mutations.js";
 import Auth from "../utils/auth.js";
+import { fetchBookVolume } from "../utils/googleBooks.js";
 
 const MyBooks = () => {
   const [selectedStatus, setSelectedStatus] = useState("All");
@@ -44,9 +45,7 @@ const MyBooks = () => {
       for (const bookStatus of books) {
         if (bookStatus.book?.google_id) {
           try {
-            const response = await fetch(
-              `https://www.googleapis.com/books/v1/volumes/${bookStatus.book.google_id}`
-            );
+            const response = await fetchBookVolume(bookStatus.book.google_id);
             if (response.ok) {
               const bookData = await response.json();
               details[bookStatus.book.google_id] = {

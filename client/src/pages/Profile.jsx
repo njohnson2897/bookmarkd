@@ -8,6 +8,7 @@ import {
   UNFOLLOW_USER,
 } from "../utils/mutations.js";
 import Auth from "../utils/auth.js";
+import { fetchBookVolume } from "../utils/googleBooks.js";
 import { useState, useEffect } from "react";
 
 const Profile = () => {
@@ -79,9 +80,7 @@ const Profile = () => {
           const googleId = bookStatus.book.google_id;
           if (!details[googleId]) {
             try {
-              const response = await fetch(
-                `https://www.googleapis.com/books/v1/volumes/${googleId}`
-              );
+              const response = await fetchBookVolume(googleId);
               if (response.ok) {
                 const bookData = await response.json();
                 details[googleId] = {
@@ -116,9 +115,7 @@ const Profile = () => {
           const googleId = review.book.google_id;
           if (!details[googleId]) {
             try {
-              const response = await fetch(
-                `https://www.googleapis.com/books/v1/volumes/${googleId}`
-              );
+              const response = await fetchBookVolume(googleId);
               if (response.ok) {
                 const bookData = await response.json();
                 details[googleId] = {
