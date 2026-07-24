@@ -53,15 +53,6 @@ const startApolloServer = async () => {
     context: authMiddleware
   }));
 
-  // // Serve static files from the React app in production
-  // if (process.env.NODE_ENV === 'production') {
-  //   app.use(express.static(path.join(__dirname, '../client/dist')));
-
-  //   // Serve the React app for all non-API routes
-  //   app.get('*', (req, res) => {
-  //     res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-  //   });
-  // }
 
   // Log MongoDB connection status
   console.log('Waiting for MongoDB connection...');
